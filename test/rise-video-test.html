@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rise-video test</title>
+
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
+
+    <script type="text/javascript">
+      RisePlayerConfiguration = {
+        isConfigured: () => true
+      };
+    </script>
+
+    <script type="module" src="../src/rise-video.js"></script>
+  </head>
+  <body>
+
+    <test-fixture id="SimpleTestFixture">
+      <template>
+        <rise-video id="rise-video-01"></rise-video>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      suite('rise-video', () => {
+
+        test('component exists', () => {
+          // Get instance of element from test fixture
+          const element = fixture('SimpleTestFixture');
+          assert.isOk(element);
+        });
+
+      });
+    </script>
+
+  </body>
+</html>
