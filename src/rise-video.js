@@ -27,6 +27,17 @@ export default class RiseVideo extends RiseElement {
     this._initialStart = true;
   }
 
+  static get LOG_TYPE_INFO() {
+    return "info";
+  }
+
+  static get LOG_TYPE_WARNING() {
+    return "warning";
+  }
+
+  static get LOG_TYPE_ERROR() {
+    return "error";
+  }
 
   _handleStart() {
     if ( this._initialStart ) {
