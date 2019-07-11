@@ -29,14 +29,22 @@
     </test-fixture>
 
     <script type="module">
-      suite('rise-video', () => {
+      suite("rise-video", () => {
 
-        test('component exists', () => {
+        test("component exists", () => {
           // Get instance of element from test fixture
-          const element = fixture('SimpleTestFixture');
+          const element = fixture("SimpleTestFixture");
           assert.isOk(element);
         });
 
+        test("_initialStart is updated correctly", () => {
+          const element = fixture("SimpleTestFixture");
+
+          assert.isTrue(element._initialStart);
+
+          element.dispatchEvent( new CustomEvent( "start" ));
+          assert.isFalse(element._initialStart);
+        });
       });
     </script>
 

@@ -23,8 +23,23 @@ export default class RiseVideo extends RiseElement {
     super();
 
     this._setVersion( version );
+
+    this._initialStart = true;
   }
 
+
+  _handleStart() {
+    if ( this._initialStart ) {
+      this._initialStart = false;
+
+      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_START, { files: this.files });
+
+      this._start();
+    }
+  }
+
+  _start() {
+  }
 }
 
 customElements.define( "rise-video", RiseVideo );
