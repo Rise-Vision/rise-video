@@ -37,6 +37,14 @@
           assert.isOk(element);
         });
 
+        test('_initialStart is updated correctly', () => {
+          const element = fixture('SimpleTestFixture');
+
+          assert.isTrue(element._initialStart);
+
+          element.dispatchEvent( new CustomEvent( "start" ));
+          assert.isFalse(element._initialStart);
+        });
       });
     </script>
 
