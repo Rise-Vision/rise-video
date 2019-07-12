@@ -46,6 +46,7 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
 
     this._initialStart = true;
     this._filesList = [];
+    this._validFileTypes = [ "mp4" ];
   }
 
   _handleStart() {
@@ -59,11 +60,7 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
   }
 
   _start() {
-    const { validFiles } = this.validateFiles( this.files, ["mp4"] );
-
-    // TODO: Log errors when all or some of the files are invalid, as per rise-image.
-    //       Need to discuss whether this should happen as part of ValidFilesMixin
-    //       or on a per-component basis.
+    const { validFiles } = this.validateFiles( this.files, this._validFileTypes );
 
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
