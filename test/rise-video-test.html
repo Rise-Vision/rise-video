@@ -14,7 +14,7 @@
     <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
 
     <script type="text/javascript">
-      const FILES = "";
+      const FILES = "test1.mp4|test2.png|test3.mp4";
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -35,12 +35,18 @@
       <template>
         <rise-video
           id="rise-video-01"
-          files="">
+          files="test1.mp4|test2.png|test3.mp4">
         </rise-video>
       </template>
     </test-fixture>
 
     <script type="module">
+      let element;
+
+      setup(() => {
+        element = fixture("SimpleTestFixture");
+      });
+
       suite("logging", () => {
         const componentData = {
           name: "rise-video",
@@ -49,8 +55,6 @@
         };
 
         test( "should log 'start' event with correct params", () => {
-          const element = fixture("SimpleTestFixture");
-
           element.dispatchEvent( new CustomEvent( "start" ));
 
           assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 0 ], componentData );
@@ -61,18 +65,20 @@
 
       suite("rise-video", () => {
         test("component exists", () => {
-          // Get instance of element from test fixture
-          const element = fixture("SimpleTestFixture");
           assert.isOk(element);
         });
 
         test("_initialStart is updated correctly", () => {
-          const element = fixture("SimpleTestFixture");
-
           assert.isTrue(element._initialStart);
 
           element.dispatchEvent( new CustomEvent( "start" ));
           assert.isFalse(element._initialStart);
+        });
+
+        test("invalid files are filtered out", () => {
+          element.dispatchEvent( new CustomEvent( "start" ));
+
+          assert.deepEqual(element._validFiles, ["test1.mp4", "test3.mp4"]);
         });
       });
     </script>
