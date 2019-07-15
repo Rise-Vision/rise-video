@@ -14,7 +14,7 @@
     <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
 
     <script type="text/javascript">
-      const FILES = "test1.mp4|test2.png|test3.mp4";
+      const FILES = [ "test1.mp4", "test2.png", "test3.mp4" ];
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -35,7 +35,7 @@
       <template>
         <rise-video
           id="rise-video-01"
-          files="test1.mp4|test2.png|test3.mp4">
+          files='["test1.mp4", "test2.png", "test3.mp4"]'>
         </rise-video>
       </template>
     </test-fixture>

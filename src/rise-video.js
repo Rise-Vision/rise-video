@@ -27,8 +27,10 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
   static get properties() {
     return {
       files: {
-        type: String,
-        value: ""
+        type: Array,
+        value: () => {
+          return [];
+        }
       },
 
       _validFiles: {
