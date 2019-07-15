@@ -12,15 +12,12 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
           display: inline-block;
           overflow: hidden;
           position: relative;
-          color: #fff;
         }
       </style>
       <h1>VIDEO</h1>
-      <ul>
         <template is="dom-repeat" items="[[_validFiles]]">
-          <li>[[item]]</li>
+          <video src="https://storage.googleapis.com/[[item]]" autoplay></video>
         </template>
-      </ul>
     `;
   }
 
@@ -39,6 +36,10 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
         notify: true
       }
     }
+  }
+
+  static get STORAGE_PREFIX() {
+    return "https://storage.googleapis.com/";
   }
 
   constructor() {
