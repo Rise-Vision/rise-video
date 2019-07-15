@@ -10,11 +10,20 @@
     <script src="../node_modules/@polymer/test-fixture/test-fixture.js"></script>
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/sinon/pkg/sinon.js"></script>
     <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
 
     <script type="text/javascript">
+      const FILES = "";
+
       RisePlayerConfiguration = {
-        isConfigured: () => true
+        isConfigured: () => true,
+        isPreview: () => false,
+        Logger: {
+          info: sinon.spy(),
+          error: sinon.spy(),
+          warning: sinon.spy()
+        }
       };
     </script>
 
@@ -24,13 +33,33 @@
 
     <test-fixture id="SimpleTestFixture">
       <template>
-        <rise-video id="rise-video-01"></rise-video>
+        <rise-video
+          id="rise-video-01"
+          files="">
+        </rise-video>
       </template>
     </test-fixture>
 
     <script type="module">
-      suite("rise-video", () => {
+      suite("logging", () => {
+        const componentData = {
+          name: "rise-video",
+          id: "rise-video-01",
+          version: "__VERSION__"
+        };
 
+        test( "should log 'start' event with correct params", () => {
+          const element = fixture("SimpleTestFixture");
+
+          element.dispatchEvent( new CustomEvent( "start" ));
+
+          assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 0 ], componentData );
+          assert.equal( RisePlayerConfiguration.Logger.info.args[ 0 ][ 1 ], "start");
+          assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 2 ], { files: FILES } );
+        });
+      });
+
+      suite("rise-video", () => {
         test("component exists", () => {
           // Get instance of element from test fixture
           const element = fixture("SimpleTestFixture");
