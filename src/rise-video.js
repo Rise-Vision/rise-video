@@ -1,11 +1,18 @@
 import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
+import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
 import { version } from "./rise-video-version.js";
 
-export default class RiseVideo extends RiseElement {
-
+export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
   static get template() {
     return html`
+      <style>
+        :host {
+          display: inline-block;
+          overflow: hidden;
+          position: relative;
+        }
+      </style>
       <h1>VIDEO</h1>
     `;
   }
@@ -13,10 +20,16 @@ export default class RiseVideo extends RiseElement {
   static get properties() {
     return {
       files: {
-        type: String,
-        value: ""
+        type: Array,
+        value: () => {
+          return [];
+        }
       }
     }
+  }
+
+  static get STORAGE_PREFIX() {
+    return "https://storage.googleapis.com/";
   }
 
   constructor() {
@@ -25,8 +38,10 @@ export default class RiseVideo extends RiseElement {
     this._setVersion( version );
 
     this._initialStart = true;
+    this._filesList = [];
+    this._validFileTypes = [ "mp4", "webm" ];
+    this._validFiles = [];
   }
-
 
   _handleStart() {
     if ( this._initialStart ) {
@@ -39,6 +54,11 @@ export default class RiseVideo extends RiseElement {
   }
 
   _start() {
+    const { validFiles } = this.validateFiles( this.files, this._validFileTypes );
+
+    if ( validFiles && validFiles.length > 0 ) {
+      this._validFiles = validFiles;
+    }
   }
 }
 
