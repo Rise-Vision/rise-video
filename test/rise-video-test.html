@@ -14,7 +14,7 @@
     <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
 
     <script type="text/javascript">
-      const FILES = [ "test1.mp4", "test2.png", "test3.mp4" ];
+      const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -35,7 +35,7 @@
       <template>
         <rise-video
           id="rise-video-01"
-          files='["test1.mp4", "test2.png", "test3.mp4"]'>
+          files='["test1.mp4", "test2.png", "test3.webm"]'>
         </rise-video>
       </template>
     </test-fixture>
@@ -78,7 +78,7 @@
         test("invalid files are filtered out", () => {
           element.dispatchEvent( new CustomEvent( "start" ));
 
-          assert.deepEqual(element._validFiles, ["test1.mp4", "test3.mp4"]);
+          assert.deepEqual(element._validFiles, ["test1.mp4", "test3.webm"]);
         });
       });
     </script>

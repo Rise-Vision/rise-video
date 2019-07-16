@@ -39,7 +39,7 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
 
     this._initialStart = true;
     this._filesList = [];
-    this._validFileTypes = [ "mp4" ];
+    this._validFileTypes = [ "mp4", "webm" ];
     this._validFiles = [];
   }
 
