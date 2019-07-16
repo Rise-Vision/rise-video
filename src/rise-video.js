@@ -1,5 +1,4 @@
 import { html } from "@polymer/polymer";
-import {} from "@polymer/polymer/lib/elements/dom-repeat.js";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
 import { version } from "./rise-video-version.js";
@@ -15,9 +14,6 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
         }
       </style>
       <h1>VIDEO</h1>
-        <template is="dom-repeat" items="[[_validFiles]]">
-          <video src="https://storage.googleapis.com/[[item]]" autoplay></video>
-        </template>
     `;
   }
 
@@ -28,12 +24,6 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
         value: () => {
           return [];
         }
-      },
-
-      _validFiles: {
-        type: Array,
-        value: [],
-        notify: true
       }
     }
   }
@@ -50,6 +40,7 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
     this._initialStart = true;
     this._filesList = [];
     this._validFileTypes = [ "mp4" ];
+    this._validFiles = [];
   }
 
   _handleStart() {
