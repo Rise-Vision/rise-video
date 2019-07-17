@@ -1,6 +1,7 @@
 /* eslint-disable no-console, one-var */
 
 import { html } from "@polymer/polymer";
+import {} from "@polymer/polymer/lib/elements/dom-repeat.js";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin"
 import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
@@ -17,12 +18,22 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
         }
       </style>
       <h1>VIDEO</h1>
+      <template is="dom-repeat" items="{{_filesToRenderList}}">
+        <video src="[[item.fileUrl]]" autoplay loop></video>
+      </template>
     `;
   }
 
   static get properties() {
     return {
       files: {
+        type: Array,
+        value: () => {
+          return [];
+        }
+      },
+
+      _filesToRenderList: {
         type: Array,
         value: () => {
           return [];
