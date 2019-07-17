@@ -42,6 +42,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
     this._initialStart = true;
     this._filesList = [];
+    this._filesToRenderList = [];
     this._validFileTypes = [ "mp4", "webm" ];
     this._validFiles = [];
   }
@@ -73,16 +74,30 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     }
   }
 
-  _handleWatchedFileError( details ) {
-    console.log ( "_handleWatchedFileError", details );
+  _configureShowingVideos() {
+    this._filesToRenderList = this.managedFiles.slice( 0 );
   }
 
-  _handleWatchedFileAdded( details ) {
-    console.log ( "_handleWatchedFileAdded", details );
+  watchedFileErrorCallback() {
+    if ( this.managedFiles.length === 0 ) {
+      this._filesToRenderList = [];
+    }
   }
 
-  _handleWatchedFileDeleted( details ) {
-    console.log ( "_handleWatchedFileDeleted", details );
+  watchedFileAddedCallback() {
+    if ( this._filesToRenderList.length < 2 ) {
+      this._configureShowingVideos();
+    }
+  }
+
+  watchedFileDeletedCallback( details ) {
+    const { filePath } = details;
+
+    if ( this._filesToRenderList.length === 1 && this._filesToRenderList.find( file => file.filePath === filePath )) {
+      this._filesToRenderList = [];
+    } else {
+      this._configureShowingVideos();
+    }
   }
 }
 
