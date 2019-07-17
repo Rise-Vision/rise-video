@@ -23,6 +23,11 @@
           info: sinon.spy(),
           error: sinon.spy(),
           warning: sinon.spy()
+        },
+        LocalStorage: {
+          watchSingleFile: (file, handler) => {
+            handler( { status: "CURRENT", filePath: FILES[0], fileUrl: SAMPLE_URL } );
+          }
         }
       };
     </script>
@@ -31,7 +36,7 @@
   </head>
   <body>
 
-    <test-fixture id="SimpleTestFixture">
+    <test-fixture id="test-block">
       <template>
         <rise-video
           id="rise-video-01"
@@ -43,11 +48,11 @@
     <script type="module">
       let element;
 
-      setup(() => {
-        element = fixture("SimpleTestFixture");
-      });
+      setup (() => {
+        element = fixture("test-block");
+      } );
 
-      suite("logging", () => {
+      suite( "logging", () => {
         const componentData = {
           name: "rise-video",
           id: "rise-video-01",
@@ -55,30 +60,60 @@
         };
 
         test( "should log 'start' event with correct params", () => {
-          element.dispatchEvent( new CustomEvent( "start" ));
+          element.dispatchEvent( new CustomEvent( "start" ) );
 
           assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 0 ], componentData );
-          assert.equal( RisePlayerConfiguration.Logger.info.args[ 0 ][ 1 ], "start");
+          assert.equal( RisePlayerConfiguration.Logger.info.args[ 0 ][ 1 ], "start" );
           assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 2 ], { files: FILES } );
+        } );
+      } );
+
+      suite( "rise-video", () => {
+        test( "component exists", () => {
+          assert.isOk( element );
+        } );
+
+        test( "_initialStart is updated correctly", () => {
+          assert.isTrue( element._initialStart );
+
+          element.dispatchEvent( new CustomEvent( "start" ) );
+          assert.isFalse( element._initialStart );
         });
       });
 
-      suite("rise-video", () => {
-        test("component exists", () => {
-          assert.isOk(element);
-        });
+      suite( "valid filenames", () => {
+        test( "invalid files are filtered out", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
 
-        test("_initialStart is updated correctly", () => {
-          assert.isTrue(element._initialStart);
+          assert.deepEqual( element._validFiles, [ "test1.mp4", "test3.webm" ] );
+        } );
+      } );
 
-          element.dispatchEvent( new CustomEvent( "start" ));
-          assert.isFalse(element._initialStart);
-        });
+      suite( "watched files", () => {
+        test( "an error event should be sent if a local storage error was received", () => {
+          RisePlayerConfiguration.LocalStorage = {
+            watchSingleFile: (file, handler) => {
+              handler({
+                filePath: file,
+                fileUrl: null,
+                status: "FILE-ERROR",
+                errorMessage: "download error",
+                errorDetail: "network failure"
+              } );
+            }
+          };
 
-        test("invalid files are filtered out", () => {
-          element.dispatchEvent( new CustomEvent( "start" ));
+          element.addEventListener( "watched-file-error", event => {
+            assert.deepEqual( event.detail, {
+              filePath: FILES[0],
+              errorMessage: "image download error",
+              errorDetail: "network failure"
+            } );
 
-          assert.deepEqual(element._validFiles, ["test1.mp4", "test3.webm"]);
+            done();
+          } );
+
+          element.dispatchEvent( new CustomEvent( "start" ) );
         });
       });
     </script>
