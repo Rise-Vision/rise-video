@@ -15,6 +15,7 @@
 
     <script type="text/javascript">
       const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
+      const sampleUrl = path => `https://storage.googleapis.com/${ path }`; // TODO: Do I need this?
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -26,7 +27,7 @@
         },
         LocalStorage: {
           watchSingleFile: (file, handler) => {
-            handler( { status: "CURRENT", filePath: FILES[0], fileUrl: SAMPLE_URL } );
+            handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
           }
         }
       };
@@ -77,6 +78,7 @@
           assert.isTrue( element._initialStart );
 
           element.dispatchEvent( new CustomEvent( "start" ) );
+
           assert.isFalse( element._initialStart );
         });
       });
@@ -90,32 +92,45 @@
       } );
 
       suite( "watched files", () => {
-        test( "an error event should be sent if a local storage error was received", () => {
-          RisePlayerConfiguration.LocalStorage = {
-            watchSingleFile: (file, handler) => {
-              handler({
-                filePath: file,
-                fileUrl: null,
-                status: "FILE-ERROR",
-                errorMessage: "download error",
-                errorDetail: "network failure"
-              } );
-            }
-          };
+        test( "files to render should be populated", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
 
-          element.addEventListener( "watched-file-error", event => {
-            assert.deepEqual( event.detail, {
-              filePath: FILES[0],
-              errorMessage: "image download error",
-              errorDetail: "network failure"
-            } );
+          assert.equal( element._filesToRenderList.length, 2 );
+        } );
 
-            done();
+        test( "deleted files should be removed from list of files to render", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
+          element._handleSingleFileUpdate( {
+            filePath: "test3.webm",
+            fileUrl: sampleUrl( "test3.webm" ),
+            status: "deleted",
           } );
 
+          assert.equal( element._filesToRenderList.length, 1 );
+        } );
+
+        test( "errors should be handled", () => {
+          sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( (file, handler) => {
+            handler({
+              filePath: file,
+              fileUrl: null,
+              status: "FILE-ERROR",
+              errorMessage: "download error",
+              errorDetail: "network failure"
+            } );
+          } );
+          sinon.spy( element, "watchedFileErrorCallback" );
+
           element.dispatchEvent( new CustomEvent( "start" ) );
-        });
-      });
+
+          assert.equal( element.watchedFileErrorCallback.callCount, 2 );
+          assert.equal( element._filesToRenderList.length, 0 );
+
+          RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+          element.watchedFileErrorCallback.restore();
+        } );
+      } );
     </script>
 
   </body>
