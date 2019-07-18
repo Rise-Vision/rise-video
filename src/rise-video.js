@@ -45,14 +45,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._validFiles = [];
   }
 
-  ready() {
-    super.ready();
-
-    this.addEventListener( "watched-file-error", details => this._handleWatchedFileError( details ));
-    this.addEventListener( "watched-file-added", details => this._handleWatchedFileAdded( details ));
-    this.addEventListener( "watched-file-deleted", details => this._handleWatchedFileDeleted( details ));
-  }
-
   _handleStart() {
     if ( this._initialStart ) {
       this._initialStart = false;
