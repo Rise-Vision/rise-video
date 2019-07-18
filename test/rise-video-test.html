@@ -15,6 +15,7 @@
 
     <script type="text/javascript">
       const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
+      const sampleUrl = path => `https://storage.googleapis.com/${ path }`; // TODO: Do I need this?
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -23,6 +24,11 @@
           info: sinon.spy(),
           error: sinon.spy(),
           warning: sinon.spy()
+        },
+        LocalStorage: {
+          watchSingleFile: (file, handler) => {
+            handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+          }
         }
       };
     </script>
@@ -31,7 +37,7 @@
   </head>
   <body>
 
-    <test-fixture id="SimpleTestFixture">
+    <test-fixture id="test-block">
       <template>
         <rise-video
           id="rise-video-01"
@@ -43,11 +49,11 @@
     <script type="module">
       let element;
 
-      setup(() => {
-        element = fixture("SimpleTestFixture");
-      });
+      setup (() => {
+        element = fixture("test-block");
+      } );
 
-      suite("logging", () => {
+      suite( "logging", () => {
         const componentData = {
           name: "rise-video",
           id: "rise-video-01",
@@ -55,32 +61,76 @@
         };
 
         test( "should log 'start' event with correct params", () => {
-          element.dispatchEvent( new CustomEvent( "start" ));
+          element.dispatchEvent( new CustomEvent( "start" ) );
 
           assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 0 ], componentData );
-          assert.equal( RisePlayerConfiguration.Logger.info.args[ 0 ][ 1 ], "start");
+          assert.equal( RisePlayerConfiguration.Logger.info.args[ 0 ][ 1 ], "start" );
           assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 2 ], { files: FILES } );
+        } );
+      } );
+
+      suite( "rise-video", () => {
+        test( "component exists", () => {
+          assert.isOk( element );
+        } );
+
+        test( "_initialStart is updated correctly", () => {
+          assert.isTrue( element._initialStart );
+
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
+          assert.isFalse( element._initialStart );
         });
       });
 
-      suite("rise-video", () => {
-        test("component exists", () => {
-          assert.isOk(element);
-        });
+      suite( "valid filenames", () => {
+        test( "invalid files are filtered out", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
 
-        test("_initialStart is updated correctly", () => {
-          assert.isTrue(element._initialStart);
+          assert.deepEqual( element._validFiles, [ "test1.mp4", "test3.webm" ] );
+        } );
+      } );
 
-          element.dispatchEvent( new CustomEvent( "start" ));
-          assert.isFalse(element._initialStart);
-        });
+      suite( "watched files", () => {
+        test( "files to render should be populated", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
 
-        test("invalid files are filtered out", () => {
-          element.dispatchEvent( new CustomEvent( "start" ));
+          assert.equal( element._filesToRenderList.length, 2 );
+        } );
 
-          assert.deepEqual(element._validFiles, ["test1.mp4", "test3.webm"]);
-        });
-      });
+        test( "deleted files should be removed from list of files to render", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
+          element._handleSingleFileUpdate( {
+            filePath: "test3.webm",
+            fileUrl: sampleUrl( "test3.webm" ),
+            status: "deleted",
+          } );
+
+          assert.equal( element._filesToRenderList.length, 1 );
+        } );
+
+        test( "errors should be handled", () => {
+          sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( (file, handler) => {
+            handler({
+              filePath: file,
+              fileUrl: null,
+              status: "FILE-ERROR",
+              errorMessage: "download error",
+              errorDetail: "network failure"
+            } );
+          } );
+          sinon.spy( element, "watchedFileErrorCallback" );
+
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
+          assert.equal( element.watchedFileErrorCallback.callCount, 2 );
+          assert.equal( element._filesToRenderList.length, 0 );
+
+          RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+          element.watchedFileErrorCallback.restore();
+        } );
+      } );
     </script>
 
   </body>

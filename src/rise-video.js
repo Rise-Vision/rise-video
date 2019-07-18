@@ -1,9 +1,10 @@
 import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
+import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin";
 import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
 import { version } from "./rise-video-version.js";
 
-export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
+export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
   static get template() {
     return html`
       <style>
@@ -39,6 +40,7 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
 
     this._initialStart = true;
     this._filesList = [];
+    this._filesToRenderList = [];
     this._validFileTypes = [ "mp4", "webm" ];
     this._validFiles = [];
   }
@@ -58,6 +60,33 @@ export default class RiseVideo extends ValidFilesMixin( RiseElement ) {
 
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
+      this.startWatch( validFiles );
+    }
+  }
+
+  _configureShowingVideos() {
+    this._filesToRenderList = this.managedFiles.slice( 0 );
+  }
+
+  watchedFileErrorCallback() {
+    if ( this.managedFiles.length === 0 ) {
+      this._filesToRenderList = [];
+    }
+  }
+
+  watchedFileAddedCallback() {
+    if ( this._filesToRenderList.length < 2 ) {
+      this._configureShowingVideos();
+    }
+  }
+
+  watchedFileDeletedCallback( details ) {
+    const { filePath } = details;
+
+    if ( this._filesToRenderList.length === 1 && this._filesToRenderList.find( file => file.filePath === filePath )) {
+      this._filesToRenderList = [];
+    } else {
+      this._configureShowingVideos();
     }
   }
 }
