@@ -1,6 +1,6 @@
 import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
-import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin"
+import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin";
 import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
 import { version } from "./rise-video-version.js";
 
