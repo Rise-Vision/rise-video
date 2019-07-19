@@ -13,6 +13,8 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
           display: inline-block;
           overflow: hidden;
           position: relative;
+          width: 100%;
+          height: 100%;
         }
       </style>
       <rise-video-player files="{{_filesToRenderList}}"></rise-video-player>
@@ -26,11 +28,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
         value: () => {
           return [];
         }
-      },
-
-      _currentFile: {
-        type: String,
-        value: ""
       }
     }
   }
@@ -72,10 +69,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _configureShowingVideos() {
     this._filesToRenderList = this.managedFiles.slice( 0 );
-
-    if( this._filesToRenderList.length ) {
-      this._currentFile = this._filesToRenderList[0];
-    }
   }
 
   watchedFileErrorCallback() {
@@ -85,9 +78,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   watchedFileAddedCallback() {
-    if ( this._filesToRenderList.length < 2 ) {
-      this._configureShowingVideos();
-    }
+    this._configureShowingVideos();
   }
 
   watchedFileDeletedCallback( details ) {

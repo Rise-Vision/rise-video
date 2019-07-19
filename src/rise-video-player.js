@@ -2,12 +2,29 @@
 /* eslint-disable no-console, one-var */
 
 import { html } from "@polymer/polymer";
+import canAutoPlay from "can-autoplay";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
-import { getAspectRatio, getVideoFileType } from "./utils";
+import { getVideoFileType } from "./utils";
+import {} from "./videojs/videojs-css";
 
 export default class RiseVideoPlayer extends RiseElement {
   static get template() {
     return html`
+      <style include="videojs-css"></style>
+      <style>
+        :host {
+          display: inline-block;
+          overflow: hidden;
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+
+        video {
+          max-width: 100%;
+          max-height: 100%;
+        }
+      </style>
       <video id="video" class="vjs-nofull"></video>
     `;
   }
@@ -16,7 +33,8 @@ export default class RiseVideoPlayer extends RiseElement {
     return {
       files: {
         type: Array,
-        value: []
+        value: [],
+        observer: "_filesChanged"
       },
       width: {
         type: Number,
@@ -28,19 +46,11 @@ export default class RiseVideoPlayer extends RiseElement {
       },
       scaleToFit: {
         type: Boolean,
-        value: false
-      },
-      pause: {
-        type: Number,
-        value: 0
+        value: true
       },
       controls: {
         type: Boolean,
         value: false
-      },
-      autoplay: {
-        type: Boolean,
-        value: true
       }
     }
   }
@@ -48,29 +58,28 @@ export default class RiseVideoPlayer extends RiseElement {
   constructor() {
     super();
 
-    this._autoPlay = false,
+    this._autoPlay = true,
     this._playerInstance = null,
     this._decodeRetryCount = 0,
-    this._updateWaiting = false,
-    this._isPaused = false,
-    this._pauseTimer = null;
 
+    // Preserve bindings to this in external callbacks
     this._onPlayerInstanceReady = this._onPlayerInstanceReady.bind(this);
-
-    console.log( "constructor" );
+    this._onEnded = this._onEnded.bind(this);
+    this._onError = this._onError.bind(this);
+    this._onPlay = this._onPlay.bind(this);
+    this._onLoadedMetaData = this._onLoadedMetaData.bind(this);
   }
 
   ready() {
     super.ready();
-    console.log( "ready", this.$.video );
 
-    this._autoPlay = ( !this.controls ) ? true : this.autoplay;
+    this._autoPlay = !this.controls;
 
     // TODO: Make sure fullscreen is disabled by adding classname to video element
     
     this._playerInstance = videojs( this.$.video, {
       controls: this.controls,
-      fluid: !this.scaleToFit,
+      fluid: false, // TODO: !this.scaleToFit,
       height: this.height,
       width: this.width
     }, this._onPlayerInstanceReady );
@@ -87,10 +96,6 @@ export default class RiseVideoPlayer extends RiseElement {
   }
 
   _configureHandlers() {
-    if ( this.controls && this.pause > 1 ) {
-      this._playerInstance.on( "pause", this._onPause );
-    }
-
     this._playerInstance.on( "ended", this._onEnded );
     this._playerInstance.on( "error", this._onError );
     this._playerInstance.on( "play", this._onPlay );
@@ -101,18 +106,6 @@ export default class RiseVideoPlayer extends RiseElement {
     const loadingSpinnerComponent = this._playerInstance.getChild( "loadingSpinner" );
 
     this._playerInstance.removeChild( loadingSpinnerComponent );
-  }
-
-  _onPause() {
-    if ( !this._isPaused ) {
-      clearTimeout( this._pauseTimer );
-
-      this._pauseTimer = setTimeout( function restart() {
-        if ( this._playerInstance.paused() ) {
-          this._playerInstance.play();
-        }
-      }, this._pause * 1000 );
-    }
   }
 
   _onEnded() {
@@ -130,14 +123,11 @@ export default class RiseVideoPlayer extends RiseElement {
       console.log( "DECODE error retry count", this._decodeRetryCount );
       if ( this._decodeRetryCount <= 5 ) {
         this._decodeRetryCount += 1;
-        this._updateWaiting = true;
 
         // delay 1 second and then force a play()
-        setTimeout( function() {
-          if ( !this._isPaused ) {
-            console.log( "DECODE error, not paused, retry play()" );
-            this._play();
-          }
+        setTimeout( () => {
+          console.log( "DECODE error retry play()" );
+          this.play();
         }, 1000 );
 
         return;
@@ -159,10 +149,10 @@ export default class RiseVideoPlayer extends RiseElement {
       event_details: JSON.stringify( {
         placeholderWidth: this.width,
         placeholderHeight: this.height,
-        placeholderAspect: getAspectRatio( this.width, this.height ),
+        // TODO: placeholderAspect: getAspectRatio( this.width, this.height ),
         videoWidth: this._playerInstance.videoWidth(),
         videoHeight: this._playerInstance.videoHeight(),
-        videoAspect: getAspectRatio( this._playerInstance.videoWidth(), this._playerInstance.videoHeight() ),
+        // TODO: videoAspect: getAspectRatio( this._playerInstance.videoWidth(), this._playerInstance.videoHeight() ),
         scaleToFit: this.scaleToFit,
         fileUrl: this.fileUrl,
       } )
@@ -182,7 +172,7 @@ export default class RiseVideoPlayer extends RiseElement {
       sources = [];
       source = {
         src: file.fileUrl,
-        type: getVideoFileType( ( file.fileUrl ) )
+        type: getVideoFileType( ( file.filePath ) )
       };
 
       sources.push( source );
@@ -198,7 +188,47 @@ export default class RiseVideoPlayer extends RiseElement {
       // } );
     }
 
+    console.log( "_initPlaylist", playlist );
+
     this._playerInstance.playlist( playlist );
+  }
+
+  play() {
+    if (!this._playerInstance) {
+      return;
+    }
+    
+    // set a new source
+    if ( this.files && this.files.length && this.files.length > 0 ) {
+      this._initPlaylist();
+    }
+
+    if (this._autoPlay) {
+      canAutoPlay.video().then( ({ result }) => {
+        if ( result ) {
+          this._playerInstance.play();
+        } else {
+          // TODO: What to do when we can't autoplay?
+          console.log( "Can't auto-play video, trying muted" );
+
+          canAutoPlay.video({ muted: true }).then( ({ result }) => {
+            if (result) {
+              this._playerInstance.muted( true );
+              this._playerInstance.play();
+            } else {
+              console.log( "Can't auto-play muted videos" );
+              // TODO: What to do when we can't autoplay even muted videos?
+            }
+          });
+
+        }
+      } );
+    }
+  }
+
+  _filesChanged() {
+    console.log("Files changed", this.files);
+    this.play();
   }
 }
 
