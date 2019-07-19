@@ -3,6 +3,7 @@ import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin";
 import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
 import { version } from "./rise-video-version.js";
+import {} from "./rise-video-player";
 
 export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
   static get template() {
@@ -14,7 +15,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
           position: relative;
         }
       </style>
-      <h1>VIDEO</h1>
+      <rise-video-player file="{{_currentFile.fileUrl}}"></rise-video-player>
     `;
   }
 
@@ -25,6 +26,11 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
         value: () => {
           return [];
         }
+      },
+
+      _currentFile: {
+        type: String,
+        value: ""
       }
     }
   }
@@ -66,6 +72,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _configureShowingVideos() {
     this._filesToRenderList = this.managedFiles.slice( 0 );
+
+    if( this._filesToRenderList.length ) {
+      this._currentFile = this._filesToRenderList[0];
+    }
   }
 
   watchedFileErrorCallback() {
