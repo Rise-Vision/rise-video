@@ -15,7 +15,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
           position: relative;
         }
       </style>
-      <rise-video-player file="{{_currentFile.fileUrl}}"></rise-video-player>
+      <rise-video-player files="{{_filesToRenderList}}"></rise-video-player>
     `;
   }
 
