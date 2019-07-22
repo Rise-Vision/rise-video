@@ -33,6 +33,23 @@
           }
         }
       };
+
+      videojs = () => ({
+        currentSrc: sinon.spy(),
+        exitFullscreen: sinon.spy(),
+        getChild: sinon.spy(),
+        error: sinon.spy(),
+        muted: sinon.spy(),
+        on: sinon.spy(),
+        play: sinon.spy(),
+        playlist: sinon.spy(() => []),
+        removeChild: sinon.spy(),
+        videoHeight: sinony.spy(),
+        videoWidth: sinony.spy(),
+      });
+
+      videojs.playlist.currentItem = sinon.spy();
+      videojs.playlist.next = sinon.spy();
     </script>
 
     <script type="module" src="../../src/rise-video-player.js"></script>
@@ -43,7 +60,17 @@
       <template>
         <rise-video-player
           id="rise-video-player-01"
-          files='["test1.mp4", "test2webm"]'>
+          files='[ { "fileUrl": "https://storage.googleapis.com/test1.mp4", "filePath": "test1.mp4" }, { "fileUrl": "https://storage.googleapis.com/test2.webm", "filePath": "test2.webm" } ]'>
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="test-block-with-controls">
+      <template>
+        <rise-video-player
+          id="rise-video-player-01"
+          files='[]'
+          controls="true">
         </rise-video-player>
       </template>
     </test-fixture>
@@ -54,6 +81,33 @@
       setup (() => {
         element = fixture("test-block");
       } );
+
+      suite( "rise-video-player", () => {
+        test( "component exists", () => {
+          assert.isOk( element );
+        } );
+      } );
+
+      suite( "_autoPlay", () => {
+        test( "_autoPlay is true by default", () => {
+          assert.isTrue( element._autoPlay );
+        });
+
+        test( "_autoPlay is false when controls property is true", () => {
+          const element = fixture( "test-block-with-controls" );
+
+          assert.isFalse( element._autoPlay );
+        } );
+      } );
+
+      suite( "_playerInstance", () => {
+        test( "_playerInstance is instantiated", () => {
+          assert.isOk( element._playerInstance );
+        } );
+
+        test( "fullscreen mode is exited", () => {
+          assert.isTrue( element._playerInstance.exitFullscreen.calledOnce );
+        } );
     </script>
 
   </body>
