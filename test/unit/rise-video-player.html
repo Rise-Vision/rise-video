@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rise-video test</title>
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
+    <script src="../../node_modules/video.js/dist/video.min.js"></script>
+    <script src="../../node_modules/videojs-playlist/dist/videojs-playlist.min.js"></script>
+
+    <script type="text/javascript">
+      const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
+      const sampleUrl = path => `https://storage.googleapis.com/${ path }`; // TODO: Do I need this?
+
+      RisePlayerConfiguration = {
+        isConfigured: () => true,
+        isPreview: () => false,
+        Logger: {
+          info: sinon.spy(),
+          error: sinon.spy(),
+          warning: sinon.spy()
+        },
+        LocalStorage: {
+          watchSingleFile: (file, handler) => {
+            handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+          }
+        }
+      };
+    </script>
+
+    <script type="module" src="../../src/rise-video-player.js"></script>
+  </head>
+  <body>
+
+    <test-fixture id="test-block">
+      <template>
+        <rise-video-player
+          id="rise-video-player-01"
+          files='["test1.mp4", "test2webm"]'>
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      let element;
+
+      setup (() => {
+        element = fixture("test-block");
+      } );
+    </script>
+
+  </body>
+</html>
