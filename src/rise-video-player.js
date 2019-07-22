@@ -4,10 +4,13 @@
 import { html } from "@polymer/polymer";
 import canAutoPlay from "can-autoplay";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
-import { getVideoFileType } from "./utils";
+import { LoggerMixin } from "rise-common-component/src/logger-mixin";
+import { getVideoFileType, getAspectRatio } from "./utils";
 import {} from "./videojs/videojs-css";
 
-export default class RiseVideoPlayer extends RiseElement {
+const MAX_DECODE_RETRIES = 5;
+
+export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   static get template() {
     return html`
       <style include="videojs-css"></style>
@@ -20,12 +23,12 @@ export default class RiseVideoPlayer extends RiseElement {
           height: 100%;
         }
 
-        video {
-          max-width: 100%;
-          max-height: 100%;
+        div.video-js {
+          width: 100%;
+          height: 100%;
         }
       </style>
-      <video id="video" class="vjs-nofull"></video>
+      <video id="video" class="video-js"></video>
     `;
   }
 
@@ -35,18 +38,6 @@ export default class RiseVideoPlayer extends RiseElement {
         type: Array,
         value: [],
         observer: "_filesChanged"
-      },
-      width: {
-        type: Number,
-        value: 320
-      },
-      height: {
-        type: Number,
-        value: 200
-      },
-      scaleToFit: {
-        type: Boolean,
-        value: true
       },
       controls: {
         type: Boolean,
@@ -74,16 +65,13 @@ export default class RiseVideoPlayer extends RiseElement {
     super.ready();
 
     this._autoPlay = !this.controls;
-
-    // TODO: Make sure fullscreen is disabled by adding classname to video element
     
     this._playerInstance = videojs( this.$.video, {
       controls: this.controls,
-      fluid: false, // TODO: !this.scaleToFit,
-      height: this.height,
-      width: this.width
+      fluid: false,
     }, this._onPlayerInstanceReady );
 
+    this._playerInstance.exitFullscreen();
     this._removeLoadingSpinner();
   }
 
@@ -121,7 +109,7 @@ export default class RiseVideoPlayer extends RiseElement {
 
     if ( error && error.code === 3 ) {
       console.log( "DECODE error retry count", this._decodeRetryCount );
-      if ( this._decodeRetryCount <= 5 ) {
+      if ( this._decodeRetryCount <= MAX_DECODE_RETRIES ) {
         this._decodeRetryCount += 1;
 
         // delay 1 second and then force a play()
@@ -134,8 +122,12 @@ export default class RiseVideoPlayer extends RiseElement {
       }
     }
 
-    // TODO: Log error
-    // _playerInstance.error(), _playerInstance.currentSrc(), _getFilePathFromSrc( _playerInstance.currentSrc() )
+    // TODO: Log player instance error event
+    console.log( "Player instance error", {
+      error: this._playerInstance.error,
+      currentSrc: this._playerInstance.currentSrc(),
+      filePath:  this._getFilePathFromSrc( this._playerInstance.currentSrc() )
+    });
   }
 
   _onPlay() {
@@ -144,22 +136,22 @@ export default class RiseVideoPlayer extends RiseElement {
   }
 
   _onLoadedMetaData() {
+    const placeholderBounds = this.getBoundingClientRect();
     const data = {
       event: "aspect",
-      event_details: JSON.stringify( {
-        placeholderWidth: this.width,
-        placeholderHeight: this.height,
-        // TODO: placeholderAspect: getAspectRatio( this.width, this.height ),
+      eventDetails: {
+        placeholderWidth: placeholderBounds.width,
+        placeholderHeight: placeholderBounds.height,
+        placeholderAspect: getAspectRatio( placeholderBounds.width, placeholderBounds.height ),
         videoWidth: this._playerInstance.videoWidth(),
         videoHeight: this._playerInstance.videoHeight(),
-        // TODO: videoAspect: getAspectRatio( this._playerInstance.videoWidth(), this._playerInstance.videoHeight() ),
-        scaleToFit: this.scaleToFit,
-        fileUrl: this.fileUrl,
-      } )
+        videoAspect: getAspectRatio( this._playerInstance.videoWidth(), this._playerInstance.videoHeight() ),
+        fileUrl: this._playerInstance.currentSrc()
+      }
     };
     
     // TODO: Log aspect event
-    console.log( "aspect event", data );
+    console.log( "Aspect event", data );
   }
 
   _initPlaylist() {
@@ -181,14 +173,9 @@ export default class RiseVideoPlayer extends RiseElement {
     } );
 
     if ( !this._playerInstance.playlist ) {
-      // TODO: Log event
-      // _videoUtils.logEvent( {
-      //   "event": "error",
-      //   "event_details": "Playlist plugin did not load"
-      // } );
+      // TODO: Log playlist plugin load error event
+      console.error( "Playlist plugin did not load");
     }
-
-    console.log( "_initPlaylist", playlist );
 
     this._playerInstance.playlist( playlist );
   }
@@ -226,8 +213,15 @@ export default class RiseVideoPlayer extends RiseElement {
     }
   }
 
+  _getFilePathFromSrc( src ) {
+    if ( this.files && this.files.length && this.files.length > 0) {
+      const file = this.files.find(f => f.fileUrl === src);
+
+      return file ? file.filePath : undefined;
+    }
+  }
+
   _filesChanged() {
-    console.log("Files changed", this.files);
     this.play();
   }
 }
