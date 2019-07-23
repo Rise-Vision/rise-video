@@ -12,12 +12,16 @@
     <script src="../../node_modules/chai/chai.js"></script>
     <script src="../../node_modules/sinon/pkg/sinon.js"></script>
     <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-    <script src="../../node_modules/video.js/dist/video.min.js"></script>
-    <script src="../../node_modules/videojs-playlist/dist/videojs-playlist.min.js"></script>
 
     <script type="text/javascript">
-      const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
-      const sampleUrl = path => `https://storage.googleapis.com/${ path }`; // TODO: Do I need this?
+
+      // Sample data
+      
+      const FILES = [ "test1.mp4", "test2.webm" ];
+      const sampleUrl = path => `https://storage.googleapis.com/${ path }`;
+      const sampleType = file => 'video/' + file.split( "." ).pop();
+
+      // Stubs / spies
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -34,22 +38,27 @@
         }
       };
 
-      videojs = () => ({
-        currentSrc: sinon.spy(),
-        exitFullscreen: sinon.spy(),
-        getChild: sinon.spy(),
-        error: sinon.spy(),
-        muted: sinon.spy(),
-        on: sinon.spy(),
-        play: sinon.spy(),
-        playlist: sinon.spy(() => []),
-        removeChild: sinon.spy(),
-        videoHeight: sinon.spy(),
-        videoWidth: sinony.spy(),
-      });
+      const videojs = () => {
+        const videojs = {
+          currentSrc: sinon.spy(),
+          exitFullscreen: sinon.spy(),
+          getChild: sinon.spy(),
+          error: sinon.spy(),
+          muted: sinon.spy(),
+          on: sinon.spy(),
+          play: sinon.spy(),
+          playlist: sinon.spy(),
+          removeChild: sinon.spy(),
+          videoHeight: sinon.spy(),
+          videoWidth: sinon.spy()
+        };
 
-      videojs.playlist.currentItem = sinon.spy();
-      videojs.playlist.next = sinon.spy();
+        videojs.playlist.currentItem = sinon.spy();
+        videojs.playlist.first = sinon.spy();
+        videojs.playlist.next = sinon.spy();
+
+        return videojs;
+      };
     </script>
 
     <script type="module" src="../../src/rise-video-player.js"></script>
@@ -108,7 +117,118 @@
         test( "fullscreen mode is exited", () => {
           assert.isTrue( element._playerInstance.exitFullscreen.calledOnce );
         } );
-    </script>
+      });
 
+      suite( "_onError", () => {
+        test( "decode errors result in the correct number of retries", done => {
+          const oldErrorFunction = element._playerInstance.error;
+
+          element._decodeRetryDelay = 1;
+
+          element._playerInstance.error = sinon.stub().callsFake(() => ({ code: 3}) );
+          sinon.stub( element, "_play" ).callsFake( () => element._onError() );
+
+          element._play();
+
+          setTimeout( () => {
+            assert.equal( element._play.callCount, element._maxDecodeRetries + 1 );
+            assert.equal( element._decodeRetryCount, element._maxDecodeRetries );
+
+            element._playerInstance.error = oldErrorFunction;
+            element._play.restore();
+
+            done();
+          }, 500 );
+        } );
+      } );
+
+      suite( "_onPlay", () => {
+        test( "playing should reset the retry count", () => {
+          element._decodeRetryCount = 99;
+          element._onPlay();
+
+          assert.equal( element._decodeRetryCount, 0 );
+        } );
+      } );
+
+      suite( "_initPlaylist", () => {
+        test( "playlist should be initialized correctly", () => {
+          const expected = [
+            { sources: [ { src: sampleUrl( FILES[0]), type: sampleType( FILES[0] ) } ] },
+            { sources: [ { src: sampleUrl( FILES[1]), type: sampleType( FILES[1] ) } ] }
+          ];
+          
+          element._initPlaylist();
+
+          assert.deepEqual( element._playerInstance.playlist.args[0][0], expected );
+        } );
+      } );
+
+
+      suite( "_getFilePathFromSrc", () => {
+        test( "correct file path should be returned", () => {
+          assert.equal( element._getFilePathFromSrc( sampleUrl( FILES[0] ) ), FILES[0]);
+        } );
+      } );
+
+      suite( "_play", () => {
+        test( "should automatically play and not mute videos", done => {
+          sinon.stub( element, "_canAutoPlay").resolves( true );
+
+          element._play();
+
+          setTimeout( () => {
+            assert.equal( element._playerInstance.play.callCount, 1 );
+            assert.isFalse( element._playerInstance.muted.calledOnce);
+
+            done();
+          } );
+        } );
+
+        test( "should mute audio and then play when programmatic play with audio is unsupported", done => {
+          sinon.stub( element, "_canAutoPlay").callsFake( mute => {
+            return new Promise( ( resolve, reject ) => {
+              resolve( mute ? true : false );
+            } );
+          } );
+
+          element._play();
+
+          setTimeout( () => {
+            assert.isTrue( element._playerInstance.play.calledOnce );
+            assert.isTrue( element._playerInstance.muted.calledOnce);
+
+            done();
+          } );
+        } );
+
+        test( "should mute audio and then play when programmatic play is unsupported", done => {
+          sinon.stub( element, "_canAutoPlay").resolves( false );
+
+          element._play();
+
+          setTimeout( () => {
+            assert.equal( element._playerInstance.play.callCount, 0 );
+
+            done();
+          } );
+        } );
+
+        test( "shouldn't play when controls are disabled", done => {
+          const element = fixture( "test-block-with-controls" );
+
+          sinon.spy ( element, "_canAutoPlay" );
+
+          element._play();
+
+          setTimeout( () => {
+            assert.equal( element._playerInstance.play.callCount, 0 );
+            assert.equal( element._canAutoPlay.callCount, 0 );
+
+            done();
+          } );
+        });
+      } );
+    </script>
   </body>
 </html>

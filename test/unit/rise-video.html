@@ -34,20 +34,27 @@
         }
       };
 
-      videojs = () => ({
-        currentSrc: sinon.spy(),
-        exitFullscreen: sinon.spy(),
-        getChild: sinon.spy(),
-        error: sinon.spy(),
-        muted: sinon.spy(),
-        on: sinon.spy(),
-        play: sinon.spy(),
-        playlist: sinon.spy(() => []),
-        removeChild: sinon.spy(),
-        videoHeight: sinon.spy(),
-        videoWidth: sinon.spy(),
-      });
+      const videojs = () => {
+        const videojs = {
+          currentSrc: sinon.spy(),
+          exitFullscreen: sinon.spy(),
+          getChild: sinon.spy(),
+          error: sinon.spy(),
+          muted: sinon.spy(),
+          on: sinon.spy(),
+          play: sinon.spy(),
+          playlist: sinon.spy(),
+          removeChild: sinon.spy(),
+          videoHeight: sinon.spy(),
+          videoWidth: sinon.spy()
+        };
 
+        videojs.playlist.currentItem = sinon.spy();
+        videojs.playlist.first = sinon.spy();
+        videojs.playlist.next = sinon.spy();
+
+        return videojs;
+      };
     </script>
 
     <script type="module" src="../../src/rise-video.js"></script>

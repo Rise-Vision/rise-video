@@ -9,6 +9,7 @@ import { getVideoFileType, getAspectRatio } from "./utils";
 import {} from "./videojs/videojs-css";
 
 const MAX_DECODE_RETRIES = 5;
+const DECODE_RETRY_DELAY = 1000;
 
 export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   static get template() {
@@ -57,6 +58,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._autoPlay = true,
     this._playerInstance = null,
     this._decodeRetryCount = 0,
+    this._maxDecodeRetries = MAX_DECODE_RETRIES;
+    this._decodeRetryDelay = DECODE_RETRY_DELAY;
 
     // Preserve bindings to this in external callbacks
     this._onPlayerInstanceReady = this._onPlayerInstanceReady.bind(this);
@@ -114,14 +117,14 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     if( error && error.code === 3 ) {
       console.log( "DECODE error retry count", this._decodeRetryCount );
-      if ( this._decodeRetryCount <= MAX_DECODE_RETRIES ) {
+      if ( this._decodeRetryCount < this._maxDecodeRetries ) {
         this._decodeRetryCount += 1;
 
-        // delay 1 second and then force a play()
+        // delay and then force a play()
         setTimeout( () => {
           console.log( "DECODE error retry play()" );
           this._play();
-        }, 1000 );
+        }, this._decodeRetryDelay );
 
         return;
       }
@@ -196,14 +199,14 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     }
 
     if (this._autoPlay) {
-      canAutoPlay.video().then( ({ result }) => {
+      this._canAutoPlay().then( result => {
         if ( result ) {
           this._playFirst();
         } else {
           // TODO: What to do when we can't autoplay?
           console.log( "Can't auto-play video, trying muted" );
 
-          canAutoPlay.video({ muted: true }).then( ({ result }) => {
+          this._canAutoPlay({ muted: true }).then( result => {
             if (result) {
               this._playerInstance.muted( true );
               this._playFirst();
@@ -212,7 +215,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
               console.log( "Can't auto-play muted videos" );
             }
           });
-
         }
       } );
     }
@@ -233,6 +235,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   filesChanged() {
     this._play();
+  }
+
+  _canAutoPlay( muted = false ) {
+    return canAutoPlay.video( { muted } );
   }
 }
 
