@@ -33,6 +33,21 @@
           }
         }
       };
+
+      videojs = () => ({
+        currentSrc: sinon.spy(),
+        exitFullscreen: sinon.spy(),
+        getChild: sinon.spy(),
+        error: sinon.spy(),
+        muted: sinon.spy(),
+        on: sinon.spy(),
+        play: sinon.spy(),
+        playlist: sinon.spy(() => []),
+        removeChild: sinon.spy(),
+        videoHeight: sinon.spy(),
+        videoWidth: sinon.spy(),
+      });
+
     </script>
 
     <script type="module" src="../../src/rise-video.js"></script>
