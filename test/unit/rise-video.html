@@ -91,6 +91,12 @@
 
           assert.deepEqual( element._validFiles, [ "test1.mp4", "test3.webm" ] );
         } );
+
+        test( "valid filenames are updated when files property changes", () => {
+          element.files = [ "foo.mp4", "bar.webm", "baz.jpg" ];
+
+          assert.deepEqual( element._validFiles, [ "foo.mp4", "bar.webm" ] );
+        });
       } );
 
       suite( "watched files", () => {
@@ -132,6 +138,12 @@
           RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
           element.watchedFileErrorCallback.restore();
         } );
+
+        test( "watched files are updated when files property changes", () => {
+          element.files = [ "foo.mp4", "bar.webm", "baz.jpg" ];
+
+          assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
+        });
       } );
     </script>
 
