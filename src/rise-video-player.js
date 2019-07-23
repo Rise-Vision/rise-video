@@ -37,19 +37,20 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     return {
       files: {
         type: Array,
-        value: () => []
+        value: () => [],
+        observer: "filesChanged"
       },
       controls: {
         type: Boolean,
         value: false
+      },
+      // Used during testing to allow player initialization to be
+      // deferred until stubs, etc.. are in place
+      skipPlayerInit: {
+        type: Boolean,
+        value: false
       }
     }
-  }
-
-  static get observers() {
-    return [
-      "filesChanged(files, files.length, files.splices)"
-    ]
   }
 
   constructor() {
@@ -73,22 +74,15 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     super.ready();
 
     this._autoPlay = !this.controls;
-    
-    this._playerInstance = videojs( this.$.video, {
-      controls: this.controls,
-      fluid: false,
-    }, this._onPlayerInstanceReady );
 
-    this._playerInstance.exitFullscreen();
-    this._removeLoadingSpinner();
+    if (!this.skipPlayerInit) {
+      this._initPlayer();
+    }
   }
 
   _onPlayerInstanceReady() {
-    if ( this.files && this.files.length && this.files.length > 0 ) {
-      this._initPlaylist();
-    }
-
     this._configureHandlers();
+    this._play();
   }
 
   _configureHandlers() {
@@ -188,6 +182,16 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._playerInstance.playlist( playlist );
   }
 
+  _initPlayer() {
+    this._playerInstance = videojs( this.$.video, {
+      controls: this.controls,
+      fluid: false,
+    }, this._onPlayerInstanceReady );
+
+    this._playerInstance.exitFullscreen();
+    this._removeLoadingSpinner();
+  }
+
   _play() {
     if (!this._playerInstance) {
       return;
@@ -199,29 +203,34 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     }
 
     if (this._autoPlay) {
-      this._canAutoPlay().then( result => {
-        if ( result ) {
-          this._playFirst();
-        } else {
-          // TODO: What to do when we can't autoplay?
-          console.log( "Can't auto-play video, trying muted" );
+      this._playerInstance.muted( true );
+      this._playFirst();
+      
+      // this._canAutoPlay().then( result => {
+      //   if ( result ) {
+      //     this._playFirst();
+      //   } else {
+      //     // TODO: What to do when we can't autoplay?
+      //     console.log( "Can't auto-play video, trying muted" );
 
-          this._canAutoPlay({ muted: true }).then( result => {
-            if (result) {
-              this._playerInstance.muted( true );
-              this._playFirst();
-            } else {
-              // TODO: What to do when we can't autoplay even muted videos?
-              console.log( "Can't auto-play muted videos" );
-            }
-          });
-        }
-      } );
+      //     this._canAutoPlay({ muted: true }).then( result => {
+      //       if (result) {
+      //         this._playerInstance.muted( true );
+      //         this._playFirst();
+      //       } else {
+      //         // TODO: What to do when we can't autoplay even muted videos?
+      //         console.log( "Can't auto-play muted videos" );
+      //       }
+      //     });
+      //   }
+      // } );
     }
   }
 
   _playFirst() {
-    this._playerInstance.playlist.first();
+    if (this._playerInstance.playlist.first) {
+      this._playerInstance.playlist.first();
+    }
     this._playerInstance.play();
   }
 

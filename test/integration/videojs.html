@@ -1,6 +1,114 @@
-// Loading indicator was removed
-// _onPlayerInstanceReady is called
-// _onEnded is called
-// _onError is called
-// _onPlay is called
-// _onLoadedMetadata is called
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rise-video test</title>
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
+    <script src="../../node_modules/video.js/dist/video.min.js"></script>
+    <script src="../../node_modules/videojs-playlist/dist/videojs-playlist.min.js"></script>
+
+    <script type="text/javascript">
+      const FILES = [ "test.mp4" ];
+      const sampleUrl = path => `./videos/${ path }`; 
+
+      RisePlayerConfiguration = {
+        isConfigured: () => true,
+        isPreview: () => false,
+        Logger: {
+          info: sinon.spy(),
+          error: sinon.spy(),
+          warning: sinon.spy()
+        },
+        LocalStorage: {
+          watchSingleFile: (file, handler) => {
+            handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+          }
+        }
+      };
+    </script>
+
+    <script type="module" src="../../src/rise-video-player.js"></script>
+  </head>
+  <body>
+
+    <test-fixture id="test-block">
+      <template>
+        <rise-video-player
+          id="rise-video-player-01">
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="test-block-deferred">
+      <template>
+        <rise-video-player
+          id="rise-video-player-01"
+          skip-player-init="true">
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      let element;
+
+      // _onEnded is called
+      // _onError is called
+      // _onPlay is called
+      // _onLoadedMetadata is called
+
+      setup (() => {
+        element = fixture("test-block");
+      } );
+
+      suite( "videojs ui", () => {
+        
+        test( "should remove videojs ui elements", () => {
+          const container = element.root.querySelector( "div.video-js" );
+          const allowedSiblings = [ container.querySelector( "video" ), container.querySelector( ".vjs-text-track-display" ) ];
+          const siblings = Array.from(container.children);
+          const disallowedSiblings = siblings.filter(el => !allowedSiblings.includes( el ) && window.getComputedStyle(el).display !== "none" );
+
+          assert.equal( disallowedSiblings.length, 0 );
+        } );
+      } );
+
+      suite( "callbacks", () => {
+        setup (() => {
+          element = fixture("test-block-deferred");
+        } );
+
+        test( "_onPlayerInstanceReady should be called", done => {
+          sinon.spy( element, "_onPlayerInstanceReady" );
+          element._initPlayer();
+
+          setTimeout( () => {
+            assert.equal( element._onPlayerInstanceReady.callCount, 1 );
+
+            done();
+          }, 100 );
+        });
+
+        test( "_onPlay should be called", done => {
+          sinon.spy( element, "_onPlay" );
+          element._initPlayer();
+
+          setTimeout( () => {
+            debugger;
+            assert.equal( element._onPlay.callCount, 1 );
+
+            done();
+          }, 100 );
+        });
+      } );
+    </script>
+
+  </body>
+</html>

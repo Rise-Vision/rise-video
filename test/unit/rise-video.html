@@ -12,12 +12,10 @@
     <script src="../../node_modules/chai/chai.js"></script>
     <script src="../../node_modules/sinon/pkg/sinon.js"></script>
     <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
-    <script src="../../node_modules/video.js/dist/video.min.js"></script>
-    <script src="../../node_modules/videojs-playlist/dist/videojs-playlist.min.js"></script>
 
     <script type="text/javascript">
       const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
-      const sampleUrl = path => `https://storage.googleapis.com/${ path }`; // TODO: Do I need this?
+      const sampleUrl = path => `https://storage.googleapis.com/${ path }`;
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
