@@ -32,6 +32,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     }
   }
 
+  static get observers() {
+    return [
+      "filesChanged(files, files.length, files.splices)"
+    ]
+  }
+
   static get STORAGE_PREFIX() {
     return "https://storage.googleapis.com/";
   }
@@ -63,6 +69,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
+      this.stopWatch();
       this.startWatch( validFiles );
     }
   }
@@ -84,11 +91,19 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   watchedFileDeletedCallback( details ) {
     const { filePath } = details;
 
-    if ( this._filesToRenderList.length === 1 && this._filesToRenderList.find( file => file.filePath === filePath )) {
+    if ( this._filesToRenderList.length === 1 && this._filePathIsRendered( filePath) ) {
       this._filesToRenderList = [];
     } else {
       this._configureShowingVideos();
     }
+  }
+
+  _filePathIsRendered( filePath ) {
+    return this._filesToRenderList.find( file => file.filePath === filePath );
+  }
+
+  filesChanged() {
+    this._start();
   }
 }
 
