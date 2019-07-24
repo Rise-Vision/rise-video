@@ -2,7 +2,6 @@
 /* eslint-disable no-console, one-var */
 
 import { html } from "@polymer/polymer";
-import canAutoPlay from "can-autoplay";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { LoggerMixin } from "rise-common-component/src/logger-mixin";
 import { getVideoFileType, getAspectRatio } from "./utils";
@@ -38,7 +37,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       files: {
         type: Array,
         value: () => [],
-        observer: "filesChanged"
+        observer: "_filesChanged"
       },
       controls: {
         type: Boolean,
@@ -203,27 +202,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     }
 
     if (this._autoPlay) {
-      this._playerInstance.muted( true );
       this._playFirst();
-      
-      // this._canAutoPlay().then( result => {
-      //   if ( result ) {
-      //     this._playFirst();
-      //   } else {
-      //     // TODO: What to do when we can't autoplay?
-      //     console.log( "Can't auto-play video, trying muted" );
-
-      //     this._canAutoPlay({ muted: true }).then( result => {
-      //       if (result) {
-      //         this._playerInstance.muted( true );
-      //         this._playFirst();
-      //       } else {
-      //         // TODO: What to do when we can't autoplay even muted videos?
-      //         console.log( "Can't auto-play muted videos" );
-      //       }
-      //     });
-      //   }
-      // } );
     }
   }
 
@@ -231,7 +210,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     if (this._playerInstance.playlist.first) {
       this._playerInstance.playlist.first();
     }
-    this._playerInstance.play();
+
+    this._playerInstance.play().catch( () => {
+      this._playerInstance.muted( true );
+      this._playerInstance.play();
+    });
   }
 
   _getFilePathFromSrc( src ) {
@@ -242,12 +225,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     }
   }
 
-  filesChanged() {
+  _filesChanged() {
     this._play();
-  }
-
-  _canAutoPlay( muted = false ) {
-    return canAutoPlay.video( { muted } );
   }
 }
 

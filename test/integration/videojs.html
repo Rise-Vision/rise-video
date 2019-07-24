@@ -16,8 +16,8 @@
     <script src="../../node_modules/videojs-playlist/dist/videojs-playlist.min.js"></script>
 
     <script type="text/javascript">
-      const FILES = [ "test.mp4" ];
-      const sampleUrl = path => `./videos/${ path }`; 
+      const sampleUrl = path => `videos/${ path }`;
+      const sampleHref = path => window.location.href.replace( "videojs.html", "videos/" + path );
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -38,11 +38,11 @@
     <script type="module" src="../../src/rise-video-player.js"></script>
   </head>
   <body>
-
     <test-fixture id="test-block">
       <template>
         <rise-video-player
-          id="rise-video-player-01">
+          id="rise-video-player-01"
+          files='[{ "filePath": "test1-0.5s-noaudio.mp4", "fileUrl": "./videos/test1-0.5s-noaudio.mp4" }]'>
         </rise-video-player>
       </template>
     </test-fixture>
@@ -51,6 +51,7 @@
       <template>
         <rise-video-player
           id="rise-video-player-01"
+          files='[{ "filePath": "test1-0.5s-noaudio.mp4", "fileUrl": "./videos/test1-0.5s-noaudio.mp4" }, { "filePath": "test2-0.5s-noaudio.mp4", "fileUrl": "./videos/test2-0.5s-noaudio.mp4" }, { "filePath": "test1-0.5s-noaudio.webm", "fileUrl": "./videos/test1-0.5s-noaudio.webm" }, { "filePath": "test2-0.5s-noaudio.webm", "fileUrl": "./videos/test2-0.5s-noaudio.webm" }]'
           skip-player-init="true">
         </rise-video-player>
       </template>
@@ -59,17 +60,17 @@
     <script type="module">
       let element;
 
-      // _onEnded is called
-      // _onError is called
-      // _onPlay is called
-      // _onLoadedMetadata is called
+      teardown( () => {
+        if ( element._playerInstance ) {
+          element._playerInstance.dispose();
+        }
+      });
 
-      setup (() => {
-        element = fixture("test-block");
-      } );
+      suite( "ui", () => {
+        setup (() => {
+          element = fixture("test-block");
+        } );
 
-      suite( "videojs ui", () => {
-        
         test( "should remove videojs ui elements", () => {
           const container = element.root.querySelector( "div.video-js" );
           const allowedSiblings = [ container.querySelector( "video" ), container.querySelector( ".vjs-text-track-display" ) ];
@@ -80,32 +81,59 @@
         } );
       } );
 
-      suite( "callbacks", () => {
-        setup (() => {
+      suite( "playback", () => {
+        setup ( () => {
           element = fixture("test-block-deferred");
         } );
 
-        test( "_onPlayerInstanceReady should be called", done => {
-          sinon.spy( element, "_onPlayerInstanceReady" );
-          element._initPlayer();
-
-          setTimeout( () => {
+        test( "videojs player callbacks should be called", done => {
+          const onEnded = () => {
             assert.equal( element._onPlayerInstanceReady.callCount, 1 );
+            assert.equal( element._onLoadedMetaData.callCount, 1 );
+
+            sinon.restore();
+            element._playerInstance.off( "ended", onEnded );
 
             done();
-          }, 100 );
+          };
+
+          sinon.spy( element, "_onPlayerInstanceReady" );
+          sinon.spy( element, "_onPlay" );
+          sinon.spy( element, "_onLoadedMetaData" );
+          element._initPlayer();
+
+          element._playerInstance.on( "ended", onEnded );
         });
 
-        test( "_onPlay should be called", done => {
-          sinon.spy( element, "_onPlay" );
+        test( "playlists should behave correctly", done => {
+          const expectedUrls = [
+            sampleHref( "test1-0.5s-noaudio.mp4" ),
+            sampleHref( "test2-0.5s-noaudio.mp4" ),
+            sampleHref( "test1-0.5s-noaudio.webm" ),
+            sampleHref( "test2-0.5s-noaudio.webm" )
+          ];
+          const playedUrls = [];
+          const playlistitemSpy = sinon.spy( () => {
+            playedUrls.push( element.$.video.src );
+          } );
+          const onPlay = () => {
+            if ( playedUrls.length === expectedUrls.length ) {
+              assert.equal( element._onEnded.callCount, 3 );
+              assert.equal( playlistitemSpy.callCount, 4 );
+              assert.deepEqual( playedUrls, expectedUrls );
+
+              element._playerInstance.off( "playlistitem", playlistitemSpy );
+              element._playerInstance.off( "play", onPlay );
+
+              done();
+            }
+          };
+
+          sinon.spy( element, "_onEnded" );
           element._initPlayer();
-
-          setTimeout( () => {
-            debugger;
-            assert.equal( element._onPlay.callCount, 1 );
-
-            done();
-          }, 100 );
+          
+          element._playerInstance.on( "playlistitem", playlistitemSpy );
+          element._playerInstance.on( "play", onPlay );
         });
       } );
     </script>

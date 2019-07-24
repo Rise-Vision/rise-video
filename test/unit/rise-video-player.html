@@ -123,7 +123,7 @@
         test( "decode errors result in the correct number of retries", done => {
           const oldErrorFunction = element._playerInstance.error;
 
-          element._decodeRetryDelay = 1;
+          element._decodeRetryDelay = 10;
 
           element._playerInstance.error = sinon.stub().callsFake(() => ({ code: 3}) );
           sinon.stub( element, "_play" ).callsFake( () => element._onError() );
@@ -172,43 +172,11 @@
       } );
 
       suite( "_play", () => {
-        test( "should automatically play and not mute videos", done => {
-          sinon.stub( element, "_canAutoPlay").resolves( true );
-
+        test( "should automatically play videos", done => {
           element._play();
 
           setTimeout( () => {
             assert.equal( element._playerInstance.play.callCount, 1 );
-            assert.isFalse( element._playerInstance.muted.calledOnce);
-
-            done();
-          } );
-        } );
-
-        test( "should mute audio and then play when programmatic play with audio is unsupported", done => {
-          sinon.stub( element, "_canAutoPlay").callsFake( mute => {
-            return new Promise( ( resolve, reject ) => {
-              resolve( mute ? true : false );
-            } );
-          } );
-
-          element._play();
-
-          setTimeout( () => {
-            assert.isTrue( element._playerInstance.play.calledOnce );
-            assert.isTrue( element._playerInstance.muted.calledOnce);
-
-            done();
-          } );
-        } );
-
-        test( "should mute audio and then play when programmatic play is unsupported", done => {
-          sinon.stub( element, "_canAutoPlay").resolves( false );
-
-          element._play();
-
-          setTimeout( () => {
-            assert.equal( element._playerInstance.play.callCount, 0 );
 
             done();
           } );
@@ -217,13 +185,10 @@
         test( "shouldn't play when controls are disabled", done => {
           const element = fixture( "test-block-with-controls" );
 
-          sinon.spy ( element, "_canAutoPlay" );
-
           element._play();
 
           setTimeout( () => {
             assert.equal( element._playerInstance.play.callCount, 0 );
-            assert.equal( element._canAutoPlay.callCount, 0 );
 
             done();
           } );
