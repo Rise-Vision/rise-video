@@ -40,7 +40,7 @@
           error: sinon.spy(),
           muted: sinon.spy(),
           on: sinon.spy(),
-          play: sinon.spy(),
+          play: sinon.spy( sinon.stub().resolves() ),
           playlist: sinon.spy(),
           removeChild: sinon.spy(),
           videoHeight: sinon.spy(),

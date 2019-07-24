@@ -14,7 +14,6 @@
       "js": { "minify": true },
       "bundle": {
         "inlineScripts": true,
-        "inlineCss": true,
         "stripComments": true
       }
     }
