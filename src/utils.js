@@ -23,3 +23,7 @@ export function getAspectRatio( width, height ) {
 
   return width / divisor + ":" + height / divisor;
 }
+
+export function clampNumber( value, min, max ) {
+  return Math.max( Math.min( value, max ), min ); // Clamp volume to 0-100 range
+}
