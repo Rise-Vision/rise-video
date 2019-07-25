@@ -4,7 +4,12 @@
   "moduleResolution": "node",
   "plugins": {
     "local": {
-      "browsers": ["chrome"]
+      "browsers": ["chrome"],
+      "browserOptions": {
+        "chrome": [
+          "headless"
+        ]
+      }
     }
   }
 }

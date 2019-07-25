@@ -6,16 +6,16 @@
 
     <title>rise-video test</title>
 
-    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../node_modules/@polymer/test-fixture/test-fixture.js"></script>
-    <script src="../node_modules/mocha/mocha.js"></script>
-    <script src="../node_modules/chai/chai.js"></script>
-    <script src="../node_modules/sinon/pkg/sinon.js"></script>
-    <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
 
     <script type="text/javascript">
       const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
-      const sampleUrl = path => `https://storage.googleapis.com/${ path }`; // TODO: Do I need this?
+      const sampleUrl = path => `https://storage.googleapis.com/${ path }`;
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -31,9 +31,31 @@
           }
         }
       };
+
+      const videojs = () => {
+        const videojs = {
+          currentSrc: sinon.spy(),
+          exitFullscreen: sinon.spy(),
+          getChild: sinon.spy(),
+          error: sinon.spy(),
+          muted: sinon.spy(),
+          on: sinon.spy(),
+          play: sinon.spy( sinon.stub().resolves() ),
+          playlist: sinon.spy(),
+          removeChild: sinon.spy(),
+          videoHeight: sinon.spy(),
+          videoWidth: sinon.spy()
+        };
+
+        videojs.playlist.currentItem = sinon.spy();
+        videojs.playlist.first = sinon.spy();
+        videojs.playlist.next = sinon.spy();
+
+        return videojs;
+      };
     </script>
 
-    <script type="module" src="../src/rise-video.js"></script>
+    <script type="module" src="../../src/rise-video.js"></script>
   </head>
   <body>
 
@@ -89,6 +111,12 @@
 
           assert.deepEqual( element._validFiles, [ "test1.mp4", "test3.webm" ] );
         } );
+
+        test( "valid filenames are updated when files property changes", () => {
+          element.files = [ "foo.mp4", "bar.webm", "baz.jpg" ];
+
+          assert.deepEqual( element._validFiles, [ "foo.mp4", "bar.webm" ] );
+        });
       } );
 
       suite( "watched files", () => {
@@ -130,6 +158,12 @@
           RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
           element.watchedFileErrorCallback.restore();
         } );
+
+        test( "watched files are updated when files property changes", () => {
+          element.files = [ "foo.mp4", "bar.webm", "baz.jpg" ];
+
+          assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
+        });
       } );
     </script>
 

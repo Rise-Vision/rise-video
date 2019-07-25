@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rise-video test</title>
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
+
+    <script type="text/javascript">
+
+      // Sample data
+      
+      const FILES = [ "test1.mp4", "test2.webm" ];
+      const sampleUrl = path => `https://storage.googleapis.com/${ path }`;
+      const sampleType = file => 'video/' + file.split( "." ).pop();
+
+      // Stubs / spies
+
+      RisePlayerConfiguration = {
+        isConfigured: () => true,
+        isPreview: () => false,
+        Logger: {
+          info: sinon.spy(),
+          error: sinon.spy(),
+          warning: sinon.spy()
+        },
+        LocalStorage: {
+          watchSingleFile: (file, handler) => {
+            handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+          }
+        }
+      };
+
+      const videojs = () => {
+        const videojs = {
+          currentSrc: sinon.spy(),
+          exitFullscreen: sinon.spy(),
+          getChild: sinon.spy(),
+          error: sinon.spy(),
+          muted: sinon.spy(),
+          on: sinon.spy(),
+          play: sinon.spy( sinon.stub().resolves() ),
+          playlist: sinon.spy(),
+          removeChild: sinon.spy(),
+          videoHeight: sinon.spy(),
+          videoWidth: sinon.spy()
+        };
+
+        videojs.playlist.currentItem = sinon.spy();
+        videojs.playlist.first = sinon.spy();
+        videojs.playlist.next = sinon.spy();
+
+        return videojs;
+      };
+    </script>
+
+    <script type="module" src="../../src/rise-video-player.js"></script>
+  </head>
+  <body>
+
+    <test-fixture id="test-block">
+      <template>
+        <rise-video-player
+          id="rise-video-player-01"
+          files='[ { "fileUrl": "https://storage.googleapis.com/test1.mp4", "filePath": "test1.mp4" }, { "fileUrl": "https://storage.googleapis.com/test2.webm", "filePath": "test2.webm" } ]'>
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="test-block-with-controls">
+      <template>
+        <rise-video-player
+          id="rise-video-player-01"
+          files='[]'
+          controls="true">
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      let element;
+
+      setup (() => {
+        element = fixture("test-block");
+      } );
+
+      suite( "rise-video-player", () => {
+        test( "component exists", () => {
+          assert.isOk( element );
+        } );
+      } );
+
+      suite( "_autoPlay", () => {
+        test( "_autoPlay is true by default", () => {
+          assert.isTrue( element._autoPlay );
+        });
+
+        test( "_autoPlay is false when controls property is true", () => {
+          const element = fixture( "test-block-with-controls" );
+
+          assert.isFalse( element._autoPlay );
+        } );
+      } );
+
+      suite( "_playerInstance", () => {
+        test( "_playerInstance is instantiated", () => {
+          assert.isOk( element._playerInstance );
+        } );
+
+        test( "fullscreen mode is exited", () => {
+          assert.isTrue( element._playerInstance.exitFullscreen.calledOnce );
+        } );
+      });
+
+      suite( "_onError", () => {
+        test( "decode errors result in the correct number of retries", done => {
+          const oldErrorFunction = element._playerInstance.error;
+
+          element._decodeRetryDelay = 10;
+
+          element._playerInstance.error = sinon.stub().callsFake(() => ({ code: 3}) );
+          sinon.stub( element, "_play" ).callsFake( () => element._onError() );
+
+          element._play();
+
+          setTimeout( () => {
+            assert.equal( element._play.callCount, element._maxDecodeRetries + 1 );
+            assert.equal( element._decodeRetryCount, element._maxDecodeRetries );
+
+            element._playerInstance.error = oldErrorFunction;
+            element._play.restore();
+
+            done();
+          }, 500 );
+        } );
+      } );
+
+      suite( "_onPlay", () => {
+        test( "playing should reset the retry count", () => {
+          element._decodeRetryCount = 99;
+          element._onPlay();
+
+          assert.equal( element._decodeRetryCount, 0 );
+        } );
+      } );
+
+      suite( "_initPlaylist", () => {
+        test( "playlist should be initialized correctly", () => {
+          const expected = [
+            { sources: [ { src: sampleUrl( FILES[0]), type: sampleType( FILES[0] ) } ] },
+            { sources: [ { src: sampleUrl( FILES[1]), type: sampleType( FILES[1] ) } ] }
+          ];
+          
+          element._initPlaylist();
+
+          assert.deepEqual( element._playerInstance.playlist.args[0][0], expected );
+        } );
+      } );
+
+
+      suite( "_getFilePathFromSrc", () => {
+        test( "correct file path should be returned", () => {
+          assert.equal( element._getFilePathFromSrc( sampleUrl( FILES[0] ) ), FILES[0]);
+        } );
+      } );
+
+      suite( "_play", () => {
+        test( "should automatically play videos", done => {
+          element._play();
+
+          setTimeout( () => {
+            assert.equal( element._playerInstance.play.callCount, 1 );
+
+            done();
+          } );
+        } );
+
+        test( "shouldn't play when controls are disabled", done => {
+          const element = fixture( "test-block-with-controls" );
+
+          element._play();
+
+          setTimeout( () => {
+            assert.equal( element._playerInstance.play.callCount, 0 );
+
+            done();
+          } );
+        });
+      } );
+    </script>
+  </body>
+</html>

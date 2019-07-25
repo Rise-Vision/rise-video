@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rise-video test</title>
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
+  </head>
+  <body>
+
+    <script type="module">
+      import { getAspectRatio, getVideoFileType } from "../../src/utils";
+
+      suite( "getVideoFileType", () => {
+        test( "should return filetype for supported formats", () => {
+          assert.equal( getVideoFileType( "test.mp4" ), "video/mp4" );
+          assert.equal( getVideoFileType( "test.webm" ), "video/webm" );
+        } );
+
+        test( "should return undefined for unsupported formats", () => {
+          assert.equal( getVideoFileType( "test.avi" ), undefined );
+          assert.equal( getVideoFileType( "test.mov" ), undefined );
+        } );
+
+        test( "should return undefined for malformed paths", () => {
+          assert.equal( getVideoFileType( "test.mp4 " ), undefined );
+          assert.equal( getVideoFileType( "test. mp4" ), undefined );
+        } );
+      } );
+
+      suite( "getAspectRatio", () => {
+        test( "should return 4:3 aspect ratio", () => {
+          assert.equal( getAspectRatio( 1280, 960 ), "4:3" );
+        } );
+
+        test( "should return 16:9 aspect ratio", () => {
+          assert.equal( getAspectRatio( 640, 360 ), "16:9" );
+        } );
+
+        test( "should return 5:4 aspect ratio", () => {
+          assert.equal( getAspectRatio( 1280, 1024 ), "5:4" );
+        } );
+      } );
+    </script>
+
+  </body>
+</html>
