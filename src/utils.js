@@ -1,28 +1,24 @@
+
+import { VALID_FILE_TYPES } from "./rise-video";
+
 export function getVideoFileType( url ) {
-  var extensions = [ ".mp4", ".webm" ],
-    urlLowercase = url.toLowerCase(),
-    type = null,
-    i;
+  const urlLowercase = url.toLowerCase();
 
-  for ( i = 0; i <= extensions.length; i += 1 ) {
-    if ( urlLowercase.indexOf( extensions[ i ] ) !== -1 ) {
-      type = "video/" + extensions[ i ].substr( extensions[ i ].lastIndexOf( "." ) + 1 );
-      break;
+  return VALID_FILE_TYPES.find( fileType => {
+    if ( urlLowercase.endsWith( `.${fileType.toLowerCase()}` ) ) {
+      return "video/" + fileType;
     }
-  }
-
-  return type;
+  });
 }
 
 export function getAspectRatio( width, height ) {
+  let divisor;
 
-  var r;
-
-  function gcd( a, b ) {
-    return ( b == 0 ) ? a : gcd( b, a % b );
+  function greatestCommonDivisor( a, b ) {
+    return ( b == 0 ) ? a : greatestCommonDivisor( b, a % b );
   }
 
-  r = gcd( width, height );
+  divisor = greatestCommonDivisor( width, height );
 
-  return width / r + ":" + height / r;
+  return width / divisor + ":" + height / divisor;
 }

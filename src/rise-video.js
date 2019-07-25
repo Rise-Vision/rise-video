@@ -5,6 +5,8 @@ import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
 import { version } from "./rise-video-version.js";
 import {} from "./rise-video-player";
 
+export const VALID_FILE_TYPES = [ "mp4", "webm" ];
+
 export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
   static get template() {
     return html`
@@ -50,7 +52,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._initialStart = true;
     this._filesList = [];
     this._filesToRenderList = [];
-    this._validFileTypes = [ "mp4", "webm" ];
     this._validFiles = [];
   }
 
@@ -65,7 +66,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _start() {
-    const { validFiles } = this.validateFiles( this.files, this._validFileTypes );
+    const { validFiles } = this.validateFiles( this.files, VALID_FILE_TYPES );
 
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
