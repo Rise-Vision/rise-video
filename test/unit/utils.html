@@ -14,7 +14,7 @@
   <body>
 
     <script type="module">
-      import { getAspectRatio, getVideoFileType } from "../../src/utils";
+      import { clampNumber, getAspectRatio, getVideoFileType } from "../../src/utils";
 
       suite( "getVideoFileType", () => {
         test( "should return filetype for supported formats", () => {
@@ -44,6 +44,14 @@
 
         test( "should return 5:4 aspect ratio", () => {
           assert.equal( getAspectRatio( 1280, 1024 ), "5:4" );
+        } );
+      } );
+
+      suite( "clampNumber", () => {
+        test( "should clamp numbers to range", () => {
+          assert.strictEqual( clampNumber( -100, 0, 100 ), 0 );
+          assert.strictEqual( clampNumber( 101, 0, 100 ), 100 );
+          assert.strictEqual( clampNumber( 50, 0, 100 ), 50 );
         } );
       } );
     </script>

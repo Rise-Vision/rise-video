@@ -50,7 +50,8 @@
           playlist: sinon.spy(),
           removeChild: sinon.spy(),
           videoHeight: sinon.spy(),
-          videoWidth: sinon.spy()
+          videoWidth: sinon.spy(),
+          volume: sinon.spy()
         };
 
         videojs.playlist.currentItem = sinon.spy();
@@ -193,6 +194,47 @@
             done();
           } );
         });
+      } );
+
+      suite( "volume", () => {
+        test( "volume should default to 0", () => {
+          assert.strictEqual( element.volume, 0 );
+        } );
+
+        test( "player should be muted initially", () => {
+          assert.equal( element._playerInstance.volume.callCount, 1 );
+          assert.deepEqual( element._playerInstance.volume.lastCall.args, [ 0 ] );
+          assert.equal( element._playerInstance.muted.callCount, 1 );
+          assert.deepEqual( element._playerInstance.muted.lastCall.args, [ true ]  );
+        } );
+
+        test( "setVolume should be called when volume changes", () => {
+          sinon.spy( element, "_setVolume" );
+
+          element.volume = 50;
+          
+          assert.deepEqual( element._setVolume.lastCall.args, [ 50 ] );
+
+          sinon.restore();
+        } );
+
+        test( "invalid volume values should be clamped", () => {
+          element.volume = 999;
+
+          assert.equal( element.volume, 100 );
+          assert.deepEqual( element._playerInstance.volume.lastCall.args, [ 1 ] );
+
+          element.volume = -400;
+          assert.equal( element.volume, 0 );
+          assert.deepEqual( element._playerInstance.volume.lastCall.args, [ 0 ] );    
+        } );
+
+        // TODO:
+        // _muteVideo
+        // _setVolume
+        // Should be muted when volume set to <= 0
+        // Should be unmuted when volume set to >= 0
+        // Integration tests for videojs
       } );
     </script>
   </body>

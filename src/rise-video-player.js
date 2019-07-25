@@ -256,6 +256,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     const normalizedVolume = clampNumber( volume, 0, 100 );
 
+    this.volume = normalizedVolume;
+
     // TODO: Check for valid display id
 
     if ( normalizedVolume === 0 ) {
