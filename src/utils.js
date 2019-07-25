@@ -3,12 +3,13 @@ import { VALID_FILE_TYPES } from "./rise-video";
 
 export function getVideoFileType( url ) {
   const urlLowercase = url.toLowerCase();
-
-  return VALID_FILE_TYPES.find( fileType => {
+  const fileType = VALID_FILE_TYPES.find( fileType => {
     if ( urlLowercase.endsWith( `.${fileType.toLowerCase()}` ) ) {
-      return "video/" + fileType;
+      return fileType;
     }
   });
+
+  return fileType ? `video/${fileType}` : undefined;
 }
 
 export function getAspectRatio( width, height ) {
