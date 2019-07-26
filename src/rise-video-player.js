@@ -258,8 +258,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     this.volume = normalizedVolume;
 
-    // TODO: Check for valid display id
-
     if ( normalizedVolume === 0 ) {
       this._muteVideo();
     } else {
