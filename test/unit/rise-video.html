@@ -44,7 +44,8 @@
           playlist: sinon.spy(),
           removeChild: sinon.spy(),
           videoHeight: sinon.spy(),
-          videoWidth: sinon.spy()
+          videoWidth: sinon.spy(),
+          volume: sinon.spy()
         };
 
         videojs.playlist.currentItem = sinon.spy();
@@ -164,6 +165,18 @@
 
           assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
         });
+      } );
+
+      suite( "volume", () => {
+        test( "volume defaults to 0", () => {
+          assert.strictEqual( element.volume, 0 );
+        } );
+
+        test( "volume updates in video player when changed", () => {
+          element.volume = 75;
+          
+          assert.strictEqual( element.$.videoPlayer.volume, 75 );
+        } );
       } );
     </script>
 

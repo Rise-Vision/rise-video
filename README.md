@@ -54,6 +54,7 @@ https://storage.googleapis.com/risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c
 To create a valid GCS path, remove *https://storage.googleapis.com/* and replace *%20* with a space.
 The resulting GCS path is: risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c575f/Template Library/Global Assets/welcome.mp4.
 - **non-editable**: ( empty / optional ): If present, it indicates this component is not available for customization in the template editor.
+- **volume**: ( integer ): An optional integer value between 0 and 100 that indicated the volume to use when playing video files with audio tracks. If not provided, the value will default to `0` and the video will be muted.
 
 ### Events
 

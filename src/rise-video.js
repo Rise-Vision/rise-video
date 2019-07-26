@@ -19,7 +19,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
           height: 100%;
         }
       </style>
-      <rise-video-player files="{{_filesToRenderList}}"></rise-video-player>
+      <rise-video-player id="videoPlayer" files="{{_filesToRenderList}}" volume="[[volume]]"></rise-video-player>
     `;
   }
 
@@ -30,6 +30,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
         value: () => {
           return [];
         }
+      },
+      volume: {
+        type: Number,
+        value: () => 0
       }
     }
   }
