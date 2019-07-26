@@ -229,12 +229,21 @@
           assert.deepEqual( element._playerInstance.volume.lastCall.args, [ 0 ] );    
         } );
 
-        // TODO:
-        // _muteVideo
-        // _setVolume
-        // Should be muted when volume set to <= 0
-        // Should be unmuted when volume set to >= 0
-        // Integration tests for videojs
+        test( "video should be muted when volume is set to 0", () => {
+          element._playerInstance.muted.resetHistory();
+          element._setVolume( 0 );
+          assert.equal( element._playerInstance.muted.callCount, 1 );
+          assert.deepEqual( element._playerInstance.muted.lastCall.args, [ true ]  );
+        } );
+
+        test( "video should be unmuted when muted and volume set to > 0", () => {
+          element._setVolume( 0 );
+          element._playerInstance.muted.resetHistory();
+
+          element._setVolume( 50 );
+          assert.equal( element._playerInstance.muted.callCount, 2 );
+          assert.deepEqual( element._playerInstance.muted.lastCall.args, [ false ]  );
+        } );
       } );
     </script>
   </body>
