@@ -4,7 +4,7 @@
 import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { LoggerMixin } from "rise-common-component/src/logger-mixin";
-import { getVideoFileType, getAspectRatio } from "./utils";
+import { clampNumber, getVideoFileType, getAspectRatio } from "./utils";
 import {} from "./videojs/videojs-css";
 
 const MAX_DECODE_RETRIES = 5;
@@ -43,6 +43,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         type: Boolean,
         value: false
       },
+      volume: {
+        type: Number,
+        value: 0,
+      },
       // Used during testing to allow player initialization to be
       // deferred until stubs, etc.. are in place
       skipPlayerInit: {
@@ -50,6 +54,12 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         value: false
       }
     }
+  }
+
+  static get observers() {
+    return [
+      "_setVolume(volume)"
+    ]
   }
 
   constructor() {
@@ -187,6 +197,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       fluid: false,
     }, this._onPlayerInstanceReady );
 
+    this._setVolume( this.volume );
     this._playerInstance.exitFullscreen();
     this._removeLoadingSpinner();
   }
@@ -227,6 +238,32 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   _filesChanged() {
     this._play();
+  }
+
+  _muteVideo () {
+    if ( !this._playerInstance ) {
+      return;
+    }
+
+    this._playerInstance.volume( 0 );
+    this._playerInstance.muted ( true );
+  }
+
+  _setVolume( volume ) {
+    if ( !this._playerInstance ) {
+      return;
+    }
+
+    const normalizedVolume = clampNumber( volume, 0, 100 );
+
+    this.volume = normalizedVolume;
+
+    if ( normalizedVolume === 0 ) {
+      this._muteVideo();
+    } else {
+      this._playerInstance.volume( normalizedVolume / 100 );
+      this._playerInstance.muted ( false );
+    }
   }
 }
 
