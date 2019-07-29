@@ -23,10 +23,15 @@ There is no need to configure listeners if the component runs as editable ( defa
         files='[ "risemedialibrary-abc123/file1.mp4", "risemedialibrary-abc123/file2.webm" ]'>
       </rise-video>
     </div>
-...
-
+    ...
   </body>
 ```
+
+### Styling
+
+The component will scale videos to fit the size given to their parent container, ie: `#video-sample-container` in the example above. Videos will be scaled up (or down) to the largest possible size allowed while maintaining their aspect ratio. If a video (after scaling) is not as wide (or tall) as its parent container, it will be vertically or horizontally centered as needed.
+
+If extra space is needed around the video that space will be transaprent and show the background color or other contents of the parent container.
 
 ### Labels
 
