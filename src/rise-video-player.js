@@ -20,14 +20,16 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
           position: relative;
           width: 100%;
           height: 100%;
-          display: flex;
-          align-items: center;
-          background: #000;
+          background: transparent;
         }
 
         div.video-js {
           width: 100%;
-          height: 0;
+          height: 100%;
+        }
+
+        .video-js {
+          background: transparent !important;
         }
       </style>
       <video id="video" class="video-js"></video>
@@ -163,7 +165,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       }
     };
 
-    this._setFluidStyles();
+    // this._setFluidStyles();
     
     // TODO: Log aspect event
     console.log( "Aspect event", data );

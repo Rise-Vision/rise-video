@@ -57,6 +57,28 @@
       </template>
     </test-fixture>
 
+    <test-fixture id="test-block-16x9">
+      <template>
+        <div id="sizing-container-16x9" style="width: 480px; height: 270px">
+          <rise-video-player
+            id="rise-video-player-16x9"
+            files='[{ "filePath": "16x9-0.5s-noaudio.mp4", "fileUrl": "./videos/16x9-0.5s-noaudio.mp4" }]'
+            skip-player-init="true">
+          </rise-video-player>
+        </div>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="test-block-no-container">
+      <template>
+        <rise-video-player
+          id="rise-video-player-no-container"
+          files='[{ "filePath": "16x9-0.5s-noaudio.mp4", "fileUrl": "./videos/16x9-0.5s-noaudio.mp4" }]'
+          skip-player-init="true">
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
     <script type="module">
       let element;
 
@@ -167,6 +189,45 @@
           element._setVolume( -25 );
           assert.strictEqual( element._playerInstance.volume(), 0 );
           assert.strictEqual( element._playerInstance.muted(), true );
+        } );
+      } );
+
+      suite( "responsive", () => {
+        setup( () => {} );
+        
+        test( "A video should fill its container",  done => {
+          element = fixture("test-block-16x9").children[0];
+
+          element._initPlayer();
+          element._playerInstance.on( "playing", () => {
+            const containerBounds = element.getBoundingClientRect();
+            const videoBounds = element.$.video.getBoundingClientRect();
+
+            assert.equal( containerBounds.width, 480 );
+            assert.equal( containerBounds.height, 270 );
+            assert.equal( videoBounds.width, 480 );
+            assert.equal( videoBounds.height, 270 );
+
+            done();
+          } );
+        } );
+
+        test( "A video should work in a container with no dimensions",  done => {
+          element = fixture("test-block-no-container");
+
+          element._initPlayer();
+          
+          element._playerInstance.on( "playing", () => {
+            const videoBounds = element.$.video.getBoundingClientRect();
+            const elementBounds = element.getBoundingClientRect();
+
+            assert.equal( videoBounds.width, elementBounds.width );
+            assert.equal( videoBounds.height, elementBounds.height );
+            assert.isTrue( videoBounds.width > 0 );
+            assert.isTrue( videoBounds.height > 0 );
+
+            done();
+          } );
         } );
       } );
   </script>
