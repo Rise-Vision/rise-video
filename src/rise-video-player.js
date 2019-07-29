@@ -165,8 +165,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       }
     };
 
-    // this._setFluidStyles();
-    
     // TODO: Log aspect event
     console.log( "Aspect event", data );
   }
@@ -270,13 +268,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       this._playerInstance.volume( normalizedVolume / 100 );
       this._playerInstance.muted ( false );
     }
-  }
-
-  _setFluidStyles() {
-    const ratioMultiplier = this._playerInstance.videoHeight() / this._playerInstance.videoWidth();
-    const el = this.$.video.parentElement;
-
-    el.style.paddingTop = `${ratioMultiplier * 100}%`;
   }
 }
 
