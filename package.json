@@ -1,12 +1,12 @@
 {
   "name": "rise-video",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Web component for playing video files on a Rise Vision Template page",
   "scripts": {
     "prebuild": "eslint .",
-    "postbuild": "concat -o dist/rise-video.js dist/rise-video.js node_modules/video.js/dist/video.min.js node_modules/videojs-playlist/dist/videojs-playlist.min.js",
     "build": "polymer build && ./node_modules/rise-common-component/scripts/extract-source.sh rise-video",
-    "test": "eslint . && polymer test"
+    "postbuild": "gulp",
+    "test": "eslint . && npm run build && polymer test"
   },
   "repository": {
     "type": "git",
@@ -37,6 +37,8 @@
     "chai": "^4.2.0",
     "concat": "^1.0.3",
     "eslint": "^5.16.0",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
     "mocha": "^5.2.0",
     "sinon": "^7.3.2",
     "wct-mocha": "^1.0.0"

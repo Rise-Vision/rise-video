@@ -5,7 +5,7 @@ import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { LoggerMixin } from "rise-common-component/src/logger-mixin";
 import { clampNumber, getVideoFileType, getAspectRatio } from "./utils";
-import {} from "./videojs/videojs-css";
+import {} from "../dependencies/videojs-css";
 
 const MAX_DECODE_RETRIES = 5;
 const DECODE_RETRY_DELAY = 1000;
