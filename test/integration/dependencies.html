@@ -8,6 +8,7 @@
 
     <script>define=()=>{}</script>
     <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/@polymer/test-fixture/test-fixture.js"></script>
     <script src="../../node_modules/mocha/mocha.js"></script>
     <script src="../../node_modules/chai/chai.js"></script>
     <script src="../../node_modules/sinon/pkg/sinon.js"></script>
@@ -15,10 +16,23 @@
     <script src="../../dist/rise-video.js"></script>
   </head>
   <body>
+    <test-fixture id="test-block">
+      <template>
+        <video id="video-01"></video>
+      </template>
+    </test-fixture>
+
     <script type="module">
       suite( "dependencies", () => {
         test( "videojs exists", () => {
-            assert.isTrue ( typeof videojs === "function" );
+            assert.isTrue( typeof videojs === "function" );
+        } );
+
+        test( "videojs-player exists", () => {
+          const element = fixture( "test-block" );
+          const instance = videojs( document.querySelector( "#video-01" ) );
+
+          assert.isTrue( typeof instance.player === "function" );
         } );
       } );
   </script>
