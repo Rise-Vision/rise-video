@@ -6,7 +6,7 @@
     "prebuild": "eslint .",
     "build": "polymer build && ./node_modules/rise-common-component/scripts/extract-source.sh rise-video",
     "postbuild": "gulp",
-    "test": "eslint . && polymer test"
+    "test": "eslint . && npm run build && polymer test"
   },
   "repository": {
     "type": "git",
