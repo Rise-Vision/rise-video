@@ -66,6 +66,17 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     ]
   }
 
+  // Event name constants
+  static get EVENT_PLAYER_ERROR() {
+    return "player-error";
+  }
+  static get EVENT_ASPECT() {
+    return "aspect";
+  }
+  static get EVENT_PLAYLIST_PLUGIN_LOAD_ERROR() {
+    return "playlist-plugin-load-error";
+  }
+
   constructor() {
     super();
 
@@ -122,7 +133,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onError() {
     const error = this._playerInstance.error();
 
-    if( error && error.code === 3 ) {
+    if ( error && error.code === 3 ) {
       console.log( "DECODE error retry count", this._decodeRetryCount );
       if ( this._decodeRetryCount < this._maxDecodeRetries ) {
         this._decodeRetryCount += 1;
@@ -137,12 +148,24 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       }
     }
 
-    // TODO: Log player instance error event
-    console.log( "Player instance error", {
-      error: this._playerInstance.error,
-      currentSrc: this._playerInstance.currentSrc(),
-      filePath:  this._getFilePathFromSrc( this._playerInstance.currentSrc() )
-    });
+    if  ( error ) {
+      const errorTypes = [
+        "MEDIA_ERR_CUSTOM",
+        "MEDIA_ERR_ABORTED",
+        "MEDIA_ERR_NETWORK",
+        "MEDIA_ERR_DECODE",
+        "MEDIA_ERR_SRC_NOT_SUPPORTED",
+        "MEDIA_ERR_ENCRYPTED"
+      ];
+      const data = {
+        type: errorTypes[ error.code ] || "MEDIA_ERR_UNKNOWN",
+        errorMessage: error.message || "Sorry, there was a problem playing the video.",
+        currentSrc: this._playerInstance.currentSrc(),
+        filePath: this._getFilePathFromSrc( this._playerInstance.currentSrc() )
+      };
+      
+      this.log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
+    }
   }
 
   _onPlay() {
@@ -153,23 +176,20 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onLoadedMetaData() {
     const placeholderBounds = this.getBoundingClientRect();
     const data = {
-      event: "aspect",
-      eventDetails: {
-        placeholderWidth: placeholderBounds.width,
-        placeholderHeight: placeholderBounds.height,
-        placeholderAspect: getAspectRatio( placeholderBounds.width, placeholderBounds.height ),
-        videoWidth: this._playerInstance.videoWidth(),
-        videoHeight: this._playerInstance.videoHeight(),
-        videoAspect: getAspectRatio( this._playerInstance.videoWidth(), this._playerInstance.videoHeight() ),
-        fileUrl: this._playerInstance.currentSrc()
-      }
+      placeholderWidth: placeholderBounds.width,
+      placeholderHeight: placeholderBounds.height,
+      placeholderAspect: getAspectRatio( placeholderBounds.width, placeholderBounds.height ),
+      videoWidth: this._playerInstance.videoWidth(),
+      videoHeight: this._playerInstance.videoHeight(),
+      videoAspect: getAspectRatio( this._playerInstance.videoWidth(), this._playerInstance.videoHeight() ),
+      fileUrl: this._playerInstance.currentSrc()
     };
 
-    // TODO: Log aspect event
-    console.log( "Aspect event", data );
+    this.log( RiseVideoPlayer.LOG_TYPE_INFO, RiseVideoPlayer.EVENT_ASPECT, data );
   }
 
   _initPlaylist() {
+
     let playlist = [],
         playlistItem,
         sources,
@@ -188,8 +208,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     } );
 
     if ( !this._playerInstance.playlist ) {
-      // TODO: Log playlist plugin load error event
-      console.error( "Playlist plugin did not load");
+      this.log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYLIST_PLUGIN_LOAD_ERROR, { message: "Playlist plugin did not load" } );
+      return;
     }
 
     this._playerInstance.playlist( playlist );
