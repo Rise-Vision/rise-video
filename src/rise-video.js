@@ -26,10 +26,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   static get properties() {
     return {
       files: {
+        type: String,
+        value: ""
+      },
+      metadata: {
         type: Array,
-        value: () => {
-          return [];
-        }
+        value: null
       },
       volume: {
         type: Number,
@@ -40,12 +42,16 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   static get observers() {
     return [
-      "filesChanged(files, files.length, files.splices)"
+      "_reset(files, metadata)"
     ]
   }
 
   static get STORAGE_PREFIX() {
     return "https://storage.googleapis.com/";
+  }
+
+  static get EVENT_VIDEO_RESET() {
+    return "video-reset";
   }
 
   constructor() {
@@ -54,7 +60,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._setVersion( version );
 
     this._initialStart = true;
-    this._filesList = [];
     this._filesToRenderList = [];
     this._validFiles = [];
   }
@@ -70,7 +75,15 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _start() {
-    const { validFiles } = this.validateFiles( this.files, VALID_FILE_TYPES );
+    let filesList;
+    
+    if ( this._hasMetadata() ) {
+      filesList = this._getFilesFromMetadata();
+    } else {
+      filesList = this.files.split( "|" );
+    }
+      
+    const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
 
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
@@ -107,8 +120,21 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     return this._filesToRenderList.find( file => file.filePath === filePath );
   }
 
-  filesChanged() {
+  _reset() {
+    const filesToLog = !this.metadata ? this.files : this._getFilesFromMetadata();
+    
+    this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
     this._start();
+  }
+
+  _getFilesFromMetadata() {
+    return !this.metadata ? [] : this.metadata.map(( entry ) => {
+      return entry.file;
+    });
+  }
+
+   _hasMetadata() {
+    return !!this.metadata && this.metadata.length > 0;
   }
 }
 
