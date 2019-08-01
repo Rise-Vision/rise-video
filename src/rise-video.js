@@ -54,6 +54,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     return "video-reset";
   }
 
+  static get EVENT_VIDEO_START() {
+    return "video-start";
+  }
+
   constructor() {
     super();
 
@@ -68,7 +72,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     if ( this._initialStart ) {
       this._initialStart = false;
 
-      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_START, { files: this.files });
+      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_START, { files: this.files });
 
       this._start();
     }

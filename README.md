@@ -75,8 +75,9 @@ The component is listening for the following events:
 The component may log the following:
 
 - **_video-start_** ( info ): The component receives the _start_ event and commences execution.
-- **_player-error_** ( error ): An error is received from the VideoJS player.
 - **_aspect_** (info): Resolution information is received for a video from the VideoJS player.
+- **_video-reset_** ( info ): The component observed changes to either _files_ or _metadata_ attributes and performs a complete reset to use latest values.
+- **_player-error_** ( error ): An error is received from the VideoJS player.
 - **_playlist-plugin-load-error_** (error): The videojs-player plugin for the VideoJS player failed to load.
 
 In every case of an error, examine event-details entry and the other event fields for more information about the problem.
