@@ -20,7 +20,7 @@ There is no need to configure listeners if the component runs as editable ( defa
     <div id="video-sample-container">
       <rise-video
         id="rise-video-sample"
-        files='[ "risemedialibrary-abc123/file1.mp4", "risemedialibrary-abc123/file2.webm" ]'>
+        files='risemedialibrary-abc123/file1.mp4|risemedialibrary-abc123/file2.webm'>
       </rise-video>
     </div>
     ...
@@ -54,10 +54,7 @@ This component receives the following list of attributes:
 
 - **id**: ( string / required ): Unique HTML id with format 'rise-video-<NAME_OR_NUMBER>'.
 - **label**: ( string ): An optional label key for the text that will appear in the template editor. See 'Labels' section above.
-- **files** ( array / required ): List of video file paths applied in JSON format (see [Polymer documentation](https://polymer-library.polymer-project.org/3.0/docs/devguide/properties#configuring-object-and-array-properties) for configuring Array properties). A file path must be a valid GCS file path. A folder path will not be valid. For example, this is a default file path from Rise Storage:
-https://storage.googleapis.com/risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c575f/Template%20Library/Global%20Assets/welcome.mp4.
-To create a valid GCS path, remove *https://storage.googleapis.com/* and replace *%20* with a space.
-The resulting GCS path is: risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c575f/Template Library/Global Assets/welcome.mp4.
+- **files** ( string / required ): List of video file paths separated by pipe symbol. A file path must be a valid GCS file path. A folder path will not be valid. For example, this is a default folder path from Rise Storage: https://storage.googleapis.com/risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c575f/Template%20Library/Global%20Assets/Welcome.mp4. To create a valid GCS path, remove https://storage.googleapis.com/ and replace %20 with a space. The resulting GCS path is: risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c575f/Template Library/Global Assets/Welcome.mp4.
 - **non-editable**: ( empty / optional ): If present, it indicates this component is not available for customization in the template editor.
 - **volume**: ( integer ): An optional integer value between 0 and 100 that indicated the volume to use when playing video files with audio tracks. If not provided, the value will default to `0` and the video will be muted.
 
