@@ -14,7 +14,7 @@
     <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
 
     <script type="text/javascript">
-      const FILES = [ "test1.mp4", "test2.png", "test3.webm" ];
+      const FILES = "test1.mp4|test2.png|test3.webm";
       const sampleUrl = path => `https://storage.googleapis.com/${ path }`;
 
       RisePlayerConfiguration = {
@@ -64,7 +64,7 @@
       <template>
         <rise-video
           id="rise-video-01"
-          files='["test1.mp4", "test2.png", "test3.webm"]'>
+          files="test1.mp4|test2.png|test3.webm">
         </rise-video>
       </template>
     </test-fixture>
@@ -86,9 +86,9 @@
         test( "should log 'start' event with correct params", () => {
           element.dispatchEvent( new CustomEvent( "start" ) );
 
-          assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 0 ], componentData );
-          assert.equal( RisePlayerConfiguration.Logger.info.args[ 0 ][ 1 ], "start" );
-          assert.deepEqual( RisePlayerConfiguration.Logger.info.args[ 0 ][ 2 ], { files: FILES } );
+          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 0 ], componentData );
+          assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 1 ], "start" );
+          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], { files: FILES } );
         } );
       } );
 
@@ -114,7 +114,13 @@
         } );
 
         test( "valid filenames are updated when files property changes", () => {
-          element.files = [ "foo.mp4", "bar.webm", "baz.jpg" ];
+          element.files = "foo.mp4|bar.webm|baz.jpg";
+
+          assert.deepEqual( element._validFiles, [ "foo.mp4", "bar.webm" ] );
+        });
+
+        test( "valid filenames are updated when metadata property changes", () => {
+          element.metadata = [ { file: "foo.mp4" }, { file: "bar.webm" }, { file: "baz.jpg" } ];
 
           assert.deepEqual( element._validFiles, [ "foo.mp4", "bar.webm" ] );
         });
@@ -161,7 +167,13 @@
         } );
 
         test( "watched files are updated when files property changes", () => {
-          element.files = [ "foo.mp4", "bar.webm", "baz.jpg" ];
+          element.files = "foo.mp4|bar.webm|baz.jpg";
+
+          assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
+        });
+
+        test( "watched files are updated when metadata property changes", () => {
+          element.metadata = [ { file: "foo.mp4" }, { file: "bar.webm" }, { file: "baz.jpg" } ];
 
           assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
         });
