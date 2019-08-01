@@ -68,6 +68,16 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._validFiles = [];
   }
 
+  ready() {
+    super.ready();
+
+    this.$.videoPlayer.addEventListener( "log", this._childLog.bind(this) );
+  }
+
+  testLog() {
+    console.log( "LOG:", arguments ); //eslint-disable-line
+  }
+
   _handleStart() {
     if ( this._initialStart ) {
       this._initialStart = false;
@@ -139,6 +149,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
    _hasMetadata() {
     return !!this.metadata && this.metadata.length > 0;
+  }
+
+  _childLog( e ) {
+    const { type, event, details, additionalFields } = e.detail;
+    
+    this.log( type, event, details, additionalFields );
   }
 }
 

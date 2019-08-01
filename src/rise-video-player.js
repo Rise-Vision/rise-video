@@ -10,6 +10,7 @@ import {} from "../dependencies/videojs-css";
 const MAX_DECODE_RETRIES = 5;
 const DECODE_RETRY_DELAY = 1000;
 
+
 export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   static get template() {
     return html`
@@ -164,7 +165,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         filePath: this._getFilePathFromSrc( this._playerInstance.currentSrc() )
       };
       
-      this.log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
+      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
     }
   }
 
@@ -185,7 +186,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       fileUrl: this._playerInstance.currentSrc()
     };
 
-    this.log( RiseVideoPlayer.LOG_TYPE_INFO, RiseVideoPlayer.EVENT_ASPECT, data );
+    this._log( RiseVideoPlayer.LOG_TYPE_INFO, RiseVideoPlayer.EVENT_ASPECT, data );
   }
 
   _initPlaylist() {
@@ -208,7 +209,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     } );
 
     if ( !this._playerInstance.playlist ) {
-      this.log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYLIST_PLUGIN_LOAD_ERROR, { message: "Playlist plugin did not load" } );
+      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYLIST_PLUGIN_LOAD_ERROR, { message: "Playlist plugin did not load" } );
       return;
     }
 
@@ -288,6 +289,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       this._playerInstance.volume( normalizedVolume / 100 );
       this._playerInstance.muted ( false );
     }
+  }
+
+  _log( type, event, details = null, additionalFields ) {
+    this.dispatchEvent( new CustomEvent( "log", { detail: { type, event, details, additionalFields } } ) );
   }
 }
 
