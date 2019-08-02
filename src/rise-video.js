@@ -74,10 +74,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this.$.videoPlayer.addEventListener( "log", this._childLog.bind(this) );
   }
 
-  testLog() {
-    console.log( "LOG:", arguments ); //eslint-disable-line
-  }
-
   _handleStart() {
     if ( this._initialStart ) {
       this._initialStart = false;
@@ -153,7 +149,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _childLog( e ) {
     const { type, event, details, additionalFields } = e.detail;
-    
+
     this.log( type, event, details, additionalFields );
   }
 }
