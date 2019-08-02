@@ -34,6 +34,12 @@
       } );
 
       suite( "getAspectRatio", () => {
+        test( "should handle undefined values", () => {
+          assert.equal( getAspectRatio( undefined, 1 ), "0:1" );
+          assert.equal( getAspectRatio( 1, undefined ), "1:0" );
+          assert.equal( getAspectRatio( undefined, undefined ), "0:0" );
+        } );
+
         test( "should return 4:3 aspect ratio", () => {
           assert.equal( getAspectRatio( 1280, 960 ), "4:3" );
         } );

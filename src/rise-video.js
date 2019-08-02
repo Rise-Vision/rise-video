@@ -54,6 +54,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     return "video-reset";
   }
 
+  static get EVENT_VIDEO_START() {
+    return "video-start";
+  }
+
   constructor() {
     super();
 
@@ -64,11 +68,17 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._validFiles = [];
   }
 
+  ready() {
+    super.ready();
+
+    this.$.videoPlayer.addEventListener( "log", this._childLog.bind(this) );
+  }
+
   _handleStart() {
     if ( this._initialStart ) {
       this._initialStart = false;
 
-      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_START, { files: this.files });
+      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_START, { files: this.files });
 
       this._start();
     }
@@ -135,6 +145,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
    _hasMetadata() {
     return !!this.metadata && this.metadata.length > 0;
+  }
+
+  _childLog( e ) {
+    const { type, event, details, additionalFields } = e.detail;
+
+    this.log( type, event, details, additionalFields );
   }
 }
 

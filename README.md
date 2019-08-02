@@ -20,7 +20,8 @@ There is no need to configure listeners if the component runs as editable ( defa
     <div id="video-sample-container">
       <rise-video
         id="rise-video-sample"
-        files='risemedialibrary-abc123/file1.mp4|risemedialibrary-abc123/file2.webm'>
+        files='risemedialibrary-abc123/file1.mp4|risemedialibrary-abc123/file2.webm'
+        volume="0">
       </rise-video>
     </div>
     ...
@@ -46,7 +47,7 @@ This attribute holds a literal value, for example:
   </rise-video>
 ```
 
-If it's not set, the label for the component defaults to "Video", which is applied via the   [generate_blueprint.js](https://github.com/Rise-Vision/html-template-library/blob/master/generate_blueprint.js) file for a HTML Template build/deployment.
+If it's not set, the label for the component defaults to "Video", which is applied via the [generate_blueprint.js](https://github.com/Rise-Vision/html-template-library/blob/master/generate_blueprint.js) file for a HTML Template build/deployment.
 
 ### Attributes
 
@@ -56,14 +57,14 @@ This component receives the following list of attributes:
 - **label**: ( string ): An optional label key for the text that will appear in the template editor. See 'Labels' section above.
 - **files** ( string / required ): List of video file paths separated by pipe symbol. A file path must be a valid GCS file path. A folder path will not be valid. For example, this is a default folder path from Rise Storage: https://storage.googleapis.com/risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c575f/Template%20Library/Global%20Assets/Welcome.mp4. To create a valid GCS path, remove https://storage.googleapis.com/ and replace %20 with a space. The resulting GCS path is: risemedialibrary-7fa5ee92-7deb-450b-a8d5-e5ed648c575f/Template Library/Global Assets/Welcome.mp4.
 - **non-editable**: ( empty / optional ): If present, it indicates this component is not available for customization in the template editor.
-- **volume**: ( integer ): An optional integer value between 0 and 100 that indicated the volume to use when playing video files with audio tracks. If not provided, the value will default to `0` and the video will be muted.
+- **volume**: ( integer ): An optional integer value between 0 and 100 that indicates the volume to use when playing video files with audio tracks. If not provided, the value will default to `0` and the video will be muted.
 
 ### Events
 
 The component sends the following events:
 
 - **_configured_**: The component has initialized what it requires to and is ready to handle a _start_ event.
-- **_video-error_**: Thrown if an error during the processing of the files happen. The template does not need to handle this, as the component is already logging errors to BQ when running on a display. Provides an object with the following properties: file, errorMessage and errorDetail.
+- **_video-error_**: Thrown if an error during the processing of the files happens. The template does not need to handle this, as the component is already logging errors to BQ when running on a display. Provides an object with the following properties: file, errorMessage and errorDetail.
 
 The component is listening for the following events:
 
@@ -74,7 +75,10 @@ The component is listening for the following events:
 The component may log the following:
 
 - **_video-start_** ( info ): The component receives the _start_ event and commences execution.
-- TBD...
+- **_aspect_** (info): Resolution information is received for a video from the VideoJS player.
+- **_video-reset_** ( info ): The component observed changes to either _files_ or _metadata_ attributes and performs a complete reset to use latest values.
+- **_player-error_** ( error ): An error is received from the VideoJS player.
+- **_playlist-plugin-load-error_** (error): The videojs-player plugin for the VideoJS player failed to load.
 
 In every case of an error, examine event-details entry and the other event fields for more information about the problem.
 

@@ -38,31 +38,35 @@
         }
       };
 
+      let playlist = sinon.spy();
       const videojs = () => {
         const videojs = {
-          currentSrc: sinon.spy(),
+          currentSrc: sinon.spy( sinon.stub().returns( "https://storage.googleapis.com/test1.mp4" ) ),
           exitFullscreen: sinon.spy(),
           getChild: sinon.spy(),
           error: sinon.spy(),
           muted: sinon.spy(),
           on: sinon.spy(),
           play: sinon.spy( sinon.stub().resolves() ),
-          playlist: sinon.spy(),
+          playlist: playlist,
           removeChild: sinon.spy(),
-          videoHeight: sinon.spy(),
-          videoWidth: sinon.spy(),
+          videoHeight: sinon.spy( sinon.stub().returns( 720 ) ),
+          videoWidth: sinon.spy( sinon.stub().returns( 1280 ) ),
           volume: sinon.spy()
         };
 
-        videojs.playlist.currentItem = sinon.spy();
-        videojs.playlist.first = sinon.spy();
-        videojs.playlist.next = sinon.spy();
+        if ( videojs.playlist ) {
+          videojs.playlist.currentItem = sinon.spy();
+          videojs.playlist.first = sinon.spy();
+          videojs.playlist.next = sinon.spy();
+        }
 
         return videojs;
       };
     </script>
 
     <script type="module" src="../../src/rise-video-player.js"></script>
+    <script type="module" src="../../src/utils.js"></script>
   </head>
   <body>
 
@@ -86,6 +90,8 @@
     </test-fixture>
 
     <script type="module">
+      import { getAspectRatio } from "../../src/utils.js";
+
       let element;
 
       setup (() => {
@@ -243,6 +249,72 @@
           element._setVolume( 50 );
           assert.equal( element._playerInstance.muted.callCount, 2 );
           assert.deepEqual( element._playerInstance.muted.lastCall.args, [ false ]  );
+        } );
+      } );
+
+      suite( "logging", () => {
+        setup( () => {
+          sinon.spy( element, "_log" );
+        } );
+
+        teardown( () => {
+          element._log.restore();
+        } );
+        
+        test( "should log error when playlist plugin doesn't load", () => {
+          const oldPlaylist = playlist;
+
+          playlist = undefined;
+          element._initPlayer();
+          element._initPlaylist();
+
+          assert.deepEqual( element._log.lastCall.args[ 0 ], "error" );
+          assert.deepEqual( element._log.lastCall.args[ 1 ], "playlist-plugin-load-error" );
+
+          playlist = oldPlaylist;
+        } );
+
+        test( "should log aspect event when metadata is loaded", () => {
+          const bounds = element.getBoundingClientRect();
+
+          element._onLoadedMetaData();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "info" );
+          assert.equal( element._log.lastCall.args[ 1 ], "aspect" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], {
+            fileUrl: sampleUrl( "test1.mp4" ),
+            placeholderAspect: getAspectRatio( bounds.width, bounds.height ),
+            placeholderHeight: bounds.height,
+            placeholderWidth: bounds.width,
+            videoAspect: "16:9",
+            videoHeight: 720,
+            videoWidth: 1280
+          } );
+        } );
+
+        test( "should log player errors", () => {
+          const oldErrorFunction = element._playerInstance.error;
+
+          element._playerInstance.error = () => ( { code: 1234, message: undefined } );
+          element._onError();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], {
+            currentSrc: "https://storage.googleapis.com/test1.mp4",
+            errorMessage: "Sorry, there was a problem playing the video.",
+            filePath: "test1.mp4",
+            type: "MEDIA_ERR_UNKNOWN"
+          } );
+
+          element._playerInstance.error = () => ( { code: 0, message: "There was an error" } );
+          element._onError();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 2 ].type, "MEDIA_ERR_CUSTOM" );
+          assert.equal( element._log.lastCall.args[ 2 ].errorMessage, "There was an error" );
+
+          element._playerInstance.error = oldErrorFunction;
         } );
       } );
     </script>

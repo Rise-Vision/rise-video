@@ -12,8 +12,12 @@ export function getVideoFileType( url ) {
   return fileType ? `video/${fileType}` : undefined;
 }
 
-export function getAspectRatio( width, height ) {
+export function getAspectRatio( width = 0, height = 0 ) {
   let divisor;
+
+  if ( width === 0 && height === 0 ) {
+    return "0:0";
+  }
 
   function greatestCommonDivisor( a, b ) {
     return ( b == 0 ) ? a : greatestCommonDivisor( b, a % b );
