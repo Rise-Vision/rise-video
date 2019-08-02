@@ -10,7 +10,6 @@ import {} from "../dependencies/videojs-css";
 const MAX_DECODE_RETRIES = 5;
 const DECODE_RETRY_DELAY = 1000;
 
-
 export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   static get template() {
     return html`
