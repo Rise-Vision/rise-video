@@ -253,6 +253,14 @@
       } );
 
       suite( "logging", () => {
+        setup( () => {
+          sinon.spy( element, "_log" );
+        } );
+
+        teardown( () => {
+          element._log.restore();
+        } );
+        
         test( "should log error when playlist plugin doesn't load", () => {
           const oldPlaylist = playlist;
 
@@ -260,7 +268,8 @@
           element._initPlayer();
           element._initPlaylist();
 
-          assert.deepEqual( RisePlayerConfiguration.Logger.error.lastCall.args[ 1 ], "playlist-plugin-load-error" );
+          assert.deepEqual( element._log.lastCall.args[ 0 ], "error" );
+          assert.deepEqual( element._log.lastCall.args[ 1 ], "playlist-plugin-load-error" );
 
           playlist = oldPlaylist;
         } );
@@ -270,8 +279,9 @@
 
           element._onLoadedMetaData();
 
-          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 1 ], "aspect" );
-          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], {
+          assert.equal( element._log.lastCall.args[ 0 ], "info" );
+          assert.equal( element._log.lastCall.args[ 1 ], "aspect" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], {
             fileUrl: sampleUrl( "test1.mp4" ),
             placeholderAspect: getAspectRatio( bounds.width, bounds.height ),
             placeholderHeight: bounds.height,
@@ -288,8 +298,9 @@
           element._playerInstance.error = () => ( { code: 1234, message: undefined } );
           element._onError();
 
-          assert.deepEqual( RisePlayerConfiguration.Logger.error.lastCall.args[ 1 ], "player-error" );
-          assert.deepEqual( RisePlayerConfiguration.Logger.error.lastCall.args [ 2 ], {
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], {
             currentSrc: "https://storage.googleapis.com/test1.mp4",
             errorMessage: "Sorry, there was a problem playing the video.",
             filePath: "test1.mp4",
@@ -299,8 +310,9 @@
           element._playerInstance.error = () => ( { code: 0, message: "There was an error" } );
           element._onError();
 
-          assert.equal( RisePlayerConfiguration.Logger.error.lastCall.args [ 2 ].type, "MEDIA_ERR_CUSTOM" );
-          assert.equal( RisePlayerConfiguration.Logger.error.lastCall.args [ 2 ].errorMessage, "There was an error" );
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 2 ].type, "MEDIA_ERR_CUSTOM" );
+          assert.equal( element._log.lastCall.args[ 2 ].errorMessage, "There was an error" );
 
           element._playerInstance.error = oldErrorFunction;
         } );
