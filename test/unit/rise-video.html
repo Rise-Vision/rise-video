@@ -204,6 +204,47 @@
           assert.strictEqual( element.$.videoPlayer.volume, 75 );
         } );
       } );
+
+      suite( "non-preview mode", () => {
+        test( "should hide the preview placeholder if not in preview mode", () => {
+          const style = window.getComputedStyle( element.$.previewPlaceholder );
+
+          assert.equal( style.display, "none" );
+        } );
+      } );
+
+      suite( "preview mode", () => {
+        let oldIsPreview;
+
+        setup( () => {
+          oldIsPreview = RisePlayerConfiguration.isPreview;
+          RisePlayerConfiguration.isPreview = sinon.spy( sinon.stub().returns( true ) );
+          element = fixture("test-block");
+        } );
+
+        teardown( () => {
+          RisePlayerConfiguration.isPreview = oldIsPreview;
+        } );
+
+        test( "_isPreview should call RisePlayerConfiguration.isPreview", () => {
+          RisePlayerConfiguration.isPreview.resetHistory();
+
+          const isPreview = element._isPreview;
+
+          assert.strictEqual( isPreview, true );
+          assert.equal( RisePlayerConfiguration.isPreview.callCount, 1 );
+        } );
+
+        test( "should not initialize if in preview mode", () => {
+          assert.deepEqual( element._validFiles, [] );
+        } );
+
+        test( "should show the preview placeholder if in preview mode", () => {
+          const style = window.getComputedStyle( element.$.previewPlaceholder );
+
+          assert.equal( style.display, "block" );
+        } );
+      } );
     </script>
 
   </body>
