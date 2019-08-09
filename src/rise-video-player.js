@@ -189,7 +189,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _initPlaylist() {
-
     let playlist = [],
         playlistItem,
         sources,
@@ -213,6 +212,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     }
 
     this._playerInstance.playlist( playlist );
+
+    if ( playlist.length === 0) {
+      this._playerInstance.reset();
+    }
   }
 
   _initPlayer() {
@@ -232,7 +235,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     }
     
     // set a new source
-    if ( this.files && this.files.length && this.files.length > 0 ) {
+    if ( this.files ) {
       this._initPlaylist();
     }
 
@@ -261,6 +264,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _filesChanged() {
+    console.log("_filesChanged", this.files, this);
     this._play();
   }
 

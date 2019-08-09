@@ -103,6 +103,8 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     const isPreview = this._isPreview;
     let filesList;
 
+    console.log("_start", this.id, "files:", this.files, "metadata:", this.metadata); // eslint-disable-line
+
     this.$.previewPlaceholder.style.display = isPreview ? "block" : "";
 
     if ( this._isPreview ) {
@@ -112,20 +114,28 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     if ( this._hasMetadata() ) {
       filesList = this._getFilesFromMetadata();
     } else {
-      filesList = this.files.split( "|" );
+      filesList = this._getDefaultFiles();
     }
       
     const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
 
+    console.log("filesList", this.id, filesList, this.files, this.metadata, validFiles); // eslint-disable-line
+
+    this.stopWatch();
+
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
-      this.stopWatch();
+      console.log("startWatch", this.id, validFiles); // eslint-disable-line
+
       this.startWatch( validFiles );
+    } else {
+      this._configureShowingVideos();
     }
   }
 
   _configureShowingVideos() {
     this._filesToRenderList = this.managedFiles.slice( 0 );
+    console.log("_configureShowingVideos", this.id, this._filesToRenderList); // eslint-disable-line
   }
 
   watchedFileErrorCallback() {
@@ -135,11 +145,15 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   watchedFileAddedCallback() {
+    console.log(this.id, "watchedFileAdded"); // eslint-disable-line
+
     this._configureShowingVideos();
   }
 
   watchedFileDeletedCallback( details ) {
     const { filePath } = details;
+    
+    console.log(this.id, "watchedFileDeleted"); // eslint-disable-line
 
     if ( this._filesToRenderList.length === 1 && this._filePathIsRendered( filePath) ) {
       this._filesToRenderList = [];
@@ -153,7 +167,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _reset() {
-    const filesToLog = !this.metadata ? this.files : this._getFilesFromMetadata();
+    const filesToLog = !this._hasMetadata() ? this.files : this._getFilesFromMetadata();
     
     this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
     this._start();
@@ -165,8 +179,14 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     });
   }
 
+  _getDefaultFiles() {
+    return this.files.split( "|" )
+      .filter( f => f.trim().length > 0 );
+  }
+
    _hasMetadata() {
-    return !!this.metadata && this.metadata.length > 0;
+    console.log("_hasMetadata", this.id, !!this.metadata, this.metadata); // eslint-disable-line
+    return !!this.metadata;
   }
 
   _childLog( e ) {
