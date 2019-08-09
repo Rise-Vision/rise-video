@@ -50,6 +50,7 @@
           play: sinon.spy( sinon.stub().resolves() ),
           playlist: playlist,
           removeChild: sinon.spy(),
+          reset: sinon.spy(),
           videoHeight: sinon.spy( sinon.stub().returns( 720 ) ),
           videoWidth: sinon.spy( sinon.stub().returns( 1280 ) ),
           volume: sinon.spy()
@@ -156,6 +157,14 @@
 
           assert.equal( element._decodeRetryCount, 0 );
         } );
+
+        test( "player should be reset when there are no files", () => {
+          element.files = [];
+          element._playerInstance.reset.resetHistory();
+          element._play();
+
+          assert.equal( element._playerInstance.reset.callCount, 1 );
+        } );
       } );
 
       suite( "_initPlaylist", () => {
@@ -164,10 +173,29 @@
             { sources: [ { src: sampleUrl( FILES[0]), type: sampleType( FILES[0] ) } ] },
             { sources: [ { src: sampleUrl( FILES[1]), type: sampleType( FILES[1] ) } ] }
           ];
-          
+
+          element._playerInstance.playlist.resetHistory();
           element._initPlaylist();
 
           assert.deepEqual( element._playerInstance.playlist.args[0][0], expected );
+        } );
+
+        test( "should be called when initializing player, even if files is empty", () => {
+          element.files = [];
+          sinon.spy( element, "_initPlaylist" );
+          element._play();
+
+          assert.equal( element._initPlaylist.callCount, 1 );
+
+          element._initPlaylist.restore();
+        } );
+
+        test( "player should be reset when there are no files", () => {
+          element.files = [];
+          element._playerInstance.reset.resetHistory();
+          element._initPlaylist();
+
+          assert.equal( element._playerInstance.reset.callCount, 1 );
         } );
       } );
 

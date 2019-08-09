@@ -43,6 +43,7 @@
           play: sinon.spy( sinon.stub().resolves() ),
           playlist: sinon.spy(),
           removeChild: sinon.spy(),
+          reset: sinon.spy(),
           videoHeight: sinon.spy(),
           videoWidth: sinon.spy(),
           volume: sinon.spy()
@@ -191,6 +192,14 @@
 
           assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
         });
+
+        test( "_filesToRenderList is updated correctly when metadata has no files", () => {
+          assert.strictEqual( element._filesToRenderList.length, 2);
+
+          element.metadata = [];
+
+          assert.strictEqual( element._filesToRenderList.length, 0);
+        } );
       } );
 
       suite( "volume", () => {
@@ -245,7 +254,45 @@
           assert.equal( style.display, "block" );
         } );
       } );
-    </script>
+
+      suite( "get default files", () => {
+        test( "_getDefaultFiles should return the correct files", () => {
+          element.files = "foo.mp4";
+
+          assert.deepEqual( element._getDefaultFiles(), ["foo.mp4"] );
+
+          element.files = "foo.mp4|bar.mp4";
+
+          assert.deepEqual( element._getDefaultFiles(), ["foo.mp4", "bar.mp4"] );
+        } );
+
+        test( "_getDefaultFiles should handle empty strings correctly", () => {
+          element.files = "";
+
+          assert.strictEqual( element._getDefaultFiles().length, 0 );
+        } );
+
+        test( "_getDefaultFiles should handle extra whitespace correctly", () => {
+          element.files = "   foo.mp4 |  bar.mp4       ";
+
+          assert.deepEqual( element._getDefaultFiles(), ["foo.mp4", "bar.mp4"] );
+        } );
+      })
+
+      suite( "get metadata", () => {
+        test( "should handle no metadata", () => {
+          element.metadata = null;
+
+          assert.strictEqual( element._getFilesFromMetadata().length, 0 );
+        } );
+
+        test( "should return files correctly", () => {
+          element.metadata = [{ file: "foo.mp4" }, { file: "bar.webm" }];
+
+          assert.deepEqual( element._getFilesFromMetadata(), [ "foo.mp4", "bar.webm" ] );
+        } );
+      } );
+</script>
 
   </body>
 </html>
