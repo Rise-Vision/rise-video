@@ -171,7 +171,8 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _getDefaultFiles() {
     return this.files.split( "|" )
-      .filter( f => f.trim().length > 0 );
+      .map( f => f.trim() )
+      .filter( f => f.length > 0 );
   }
 
    _hasMetadata() {

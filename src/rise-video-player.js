@@ -219,6 +219,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     this._playerInstance.playlist( playlist );
 
+    // simply setting an empty playlist will not cause the player from playing
+    // the current video, so we need to reset the player.
     if ( playlist.length === 0) {
       this._playerInstance.reset();
     }
