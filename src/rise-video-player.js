@@ -171,6 +171,12 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onPlay() {
     // reset count since this event is evidence of successful play
     this._decodeRetryCount = 0;
+    
+    // playlist has been cleared since we started trying to play a video,
+    // so we need to reset the player
+    if ( !this.files.length ) {
+      this._playerInstance.reset();
+    }
   }
 
   _onLoadedMetaData() {
@@ -264,7 +270,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _filesChanged() {
-    console.log("_filesChanged", this.files, this);
     this._play();
   }
 
