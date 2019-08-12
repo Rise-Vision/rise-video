@@ -106,6 +106,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   _onPlayerInstanceReady() {
     this._configureHandlers();
+    this._setVolume( this.volume );
     this._play();
   }
 
@@ -237,7 +238,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       fluid: false,
     }, this._onPlayerInstanceReady );
 
-    this._setVolume( this.volume );
     this._playerInstance.exitFullscreen();
     this._removeLoadingSpinner();
   }
