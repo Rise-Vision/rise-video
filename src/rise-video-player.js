@@ -123,11 +123,16 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _onEnded() {
-    if ( this._playerInstance.playlist.currentItem() >= ( this._playerInstance.playlist().length - 1 ) ) {
+    if ( this._isDone() ) {
+      this.dispatchEvent( new CustomEvent( "playlist-done" ) );
       this._playFirst();
     } else {
       this._playerInstance.playlist.next();
     }
+  }
+
+  _isDone() {
+    return this._playerInstance.playlist.currentItem() >= ( this._playerInstance.playlist().length - 1 );
   }
 
   _onError() {
@@ -175,7 +180,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     // playlist has been cleared since we started trying to play a video,
     // so we need to reset the player
     if ( !this.files.length ) {
-      this._playerInstance.reset();
+      this._resetPlayer
     }
   }
 
@@ -219,10 +224,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     this._playerInstance.playlist( playlist );
 
-    // simply setting an empty playlist will not cause the player from playing
+    // simply setting an empty playlist will not stop the player from playing
     // the current video, so we need to reset the player.
     if ( playlist.length === 0) {
-      this._playerInstance.reset();
+      this._resetPlayer();
     }
   }
 
@@ -238,6 +243,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _play() {
+    console.log( "play", this.files );
     if (!this._playerInstance) {
       return;
     }
@@ -303,6 +309,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   _log( type, event, details = null, additionalFields ) {
     this.dispatchEvent( new CustomEvent( "log", { detail: { type, event, details, additionalFields } } ) );
+  }
+
+  _resetPlayer() {
+    this._playerInstance.reset();
+    this._setVolume( this.volume );
   }
 }
 
