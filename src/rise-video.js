@@ -145,13 +145,16 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
         this._waitForFirstDownload();
       }
     } else {
+      this._validFiles = [];
       this._handleNoFiles();
       this._configureShowingVideos();
     }
   }
 
   _configureShowingVideos() {
-    this._filesToRenderList = this.managedFiles.slice( 0 );
+    this._filesToRenderList = this.managedFiles
+      .slice( 0 )
+      .filter( f => this._validFiles.includes( f.filePath ) );
   }
 
   watchedFileErrorCallback() {
@@ -183,7 +186,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _reset() {
     const filesToLog = !this._hasMetadata() ? this.files : this._getFilesFromMetadata();
     
-    console.log( this.id, "reset" ); //eslint-disable-line
     this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
     this._start();
   }

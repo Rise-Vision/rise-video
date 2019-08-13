@@ -230,6 +230,35 @@
         } );
       } );
 
+      suite( "watched file updates", () => {
+        setup( () => {
+          sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( (file, handler) => {
+            setTimeout( () => {
+              handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+            }, 100);
+          } );
+
+          element = fixture( "test-block" );
+        } );
+
+        teardown( () => {
+          RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+        } );
+
+        test( "_filesToRenderList should not contain watched files which are returned after they're no longer needed", done => {
+          element.metadata = [ {file: "newFile1.mp4"}, {file: "newFile2.mp4"} ];
+
+          setTimeout( () => {
+            assert.equal( element.managedFiles.length, 4 );
+            assert.deepEqual( element._filesToRenderList, [
+              { filePath: "newFile1.mp4", fileUrl: sampleUrl( "newFile1.mp4" ), order: 0 },
+              { filePath: "newFile2.mp4", fileUrl: sampleUrl( "newFile2.mp4" ), order: 1 }
+            ]);
+            done();
+          }, 200 );
+        } );
+      } );
+
       suite( "volume", () => {
         setup (() => {
           element = fixture( "test-block" );
