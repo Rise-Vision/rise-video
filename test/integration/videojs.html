@@ -239,16 +239,20 @@
             element = fixture("test-block");
           } );
 
-          test( "report-done should be emitted when playlist finishes", () => {
-            // TODO;
-          } );
+          test( "report-done should be emitted when playlist finishes", done => {
+            sinon.spy( element, "dispatchEvent" );
 
-          test( "should wait for the correct amount of time when no files are received before emitting report-done", () => {
-            // TODO
-          } );
+            let count = 0;
+            element._playerInstance.on( "play", () => {
+              count++;
 
-          test( "should wait for the correct amount of time for first download before emitting report-done", () => {
-            // TODO
+              if ( count > element.files.length ) {
+                assert.isOk( element.dispatchEvent.getCalls().some( call => call.args[0].type === "playlist-done" ) );
+                element.dispatchEvent.restore();
+                done();
+              }
+            } );
+
           } );
         } );
       } );

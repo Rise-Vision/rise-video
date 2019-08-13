@@ -89,6 +89,8 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._validFiles = [];
     this._noFilesDoneTimer = null
     this._firstDownloadTimer = null;
+    this._maximumTimeForFirstDownload = MAXIMUM_TIME_FOR_FIRST_DOWNLOAD;
+    this._noFilesDoneDelay = NO_FILES_DONE_DELAY;
 
     // Preserve bindings to this in external callbacks
     this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind(this);
@@ -230,7 +232,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _handleNoFiles() {
     this._clearHandleNoFilesTimer();
 
-    this._noFilesDoneTimer = setTimeout( this._handleNoFilesTimer, NO_FILES_DONE_DELAY );
+    this._noFilesDoneTimer = setTimeout( this._handleNoFilesTimer, this._noFilesDoneDelay );
   }
 
   _handleNoFilesTimer() {
@@ -249,7 +251,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
     console.log( this.id, "wait for first download" ); //eslint-disable-line
 
-    this._firstDownloadTimer = setTimeout( this._handleFirstDownloadTimer, MAXIMUM_TIME_FOR_FIRST_DOWNLOAD );
+    this._firstDownloadTimer = setTimeout( this._handleFirstDownloadTimer, this._maximumTimeForFirstDownload );
   }
 
   _handleFirstDownloadTimer() {
