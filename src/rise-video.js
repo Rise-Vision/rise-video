@@ -221,7 +221,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _done( reason ) {
     if ( this.playUntilDone ) {
-      console.log( this.id, "played until done", reason );
+      console.log( this.id, `played until done (${reason}` );
       this._sendDoneEvent( true );
     }
   }
