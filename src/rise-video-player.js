@@ -181,7 +181,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     // playlist has been cleared since we started trying to play a video,
     // so we need to reset the player
     if ( !this.files.length ) {
-      this._resetPlayer
+      this._resetPlayer();
     }
   }
 

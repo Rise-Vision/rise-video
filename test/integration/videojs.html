@@ -167,6 +167,7 @@
         test( "player volume should default to 0 and be muted intially", () => {
           assert.strictEqual( element._playerInstance.volume(), 0 );
           assert.strictEqual( element._playerInstance.muted(), true );
+          // TODO: Fix failing test
         } );
 
         test( "setting volume should behave as expected", () => {
@@ -212,7 +213,7 @@
           } );
         } );
 
-        test( "A video should work in a container with no dimensions",  done => {
+        test( "a video should work in a container with no dimensions",  done => {
           element = fixture("test-block-no-container");
 
           element._initPlayer();
@@ -227,6 +228,20 @@
             assert.isTrue( videoBounds.height > 0 );
 
             done();
+          } );
+        } );
+
+        suite( "play until done", () => {
+          test( "playlist-done event should be received", () => {
+            // TODO;
+          } );
+
+          test( "should wait for the correct amount of time when no files are received before emitting report-done", () => {
+            // TODO
+          } );
+
+          test( "should wait for first download", () => {
+            // TODO
           } );
         } );
       } );

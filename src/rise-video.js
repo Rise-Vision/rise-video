@@ -213,7 +213,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _done() {
     if ( this.playUntilDone ) {
       console.log( this.id, "done" ); // eslint-disable-line
-      super._sendDoneEvent( true );
+      this._sendDoneEvent( true );
     }
   }
 
@@ -226,10 +226,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _handleNoFiles() {
     this._clearHandleNoFilesTimer();
 
-    this._noFilesDoneTimer = setTimeout( () => {
-      console.log( this.id, "no files" ); // eslint-disable-line
-      this._done();
-    }, NO_FILES_DONE_DELAY );
+    this._noFilesDoneTimer = setTimeout( this._handleNoFilesTimer, NO_FILES_DONE_DELAY );
+  }
+
+  _handleNoFilesTimer() {
+    console.log( this.id, "no files" ); // eslint-disable-line
+    this._done();
   }
 
   _clearFirstDownloadTimer() {
@@ -243,14 +245,16 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
     console.log( this.id, "wait for first download" ); //eslint-disable-line
 
-    this._firstDownloadTimer = setTimeout( () => {
-      if ( !this.managedFiles.length ) {
-        console.log( this.id, "first download took took too long" ); // eslint-disable-line
-        this._done();
-      } else {
-        console.log( this.id, this.managedFiles.length, "files after first download timer" ); // eslint-disable-line
-      }
-    }, MAXIMUM_TIME_FOR_FIRST_DOWNLOAD );
+    this._firstDownloadTimer = setTimeout( this._handleFirstDownloadTimer, MAXIMUM_TIME_FOR_FIRST_DOWNLOAD );
+  }
+
+  _handleFirstDownloadTimer() {
+    if ( !this.managedFiles.length ) {
+      console.log( this.id, "first download took took too long" ); // eslint-disable-line
+      this._done();
+    } else {
+      console.log( this.id, this.managedFiles.length, "files after first download timer" ); // eslint-disable-line
+    }
   }
 }
 

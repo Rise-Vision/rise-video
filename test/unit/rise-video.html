@@ -65,6 +65,16 @@
       <template>
         <rise-video
           id="rise-video-01"
+          files="test1.mp4|test2.png|test3.webm"
+          play-until-done>
+        </rise-video>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="test-block-without-pud">
+      <template>
+        <rise-video
+          id="rise-video-01"
           files="test1.mp4|test2.png|test3.webm">
         </rise-video>
       </template>
@@ -73,11 +83,11 @@
     <script type="module">
       let element;
 
-      setup (() => {
-        element = fixture("test-block");
-      } );
-
       suite( "logging", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         const componentData = {
           name: "rise-video",
           id: "rise-video-01",
@@ -108,6 +118,10 @@
       } );
 
       suite( "rise-video", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         test( "component exists", () => {
           assert.isOk( element );
         } );
@@ -119,9 +133,19 @@
 
           assert.isFalse( element._initialStart );
         });
+
+        test( "attributes should be set correctly", () => {
+          assert.equal( element.files, "test1.mp4|test2.png|test3.webm" );
+          assert.strictEqual( element.volume, 0 );
+          assert.strictEqual( element.playUntilDone, true );
+        } );
       });
 
       suite( "valid filenames", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         test( "invalid files are filtered out", () => {
           element.dispatchEvent( new CustomEvent( "start" ) );
 
@@ -142,6 +166,10 @@
       } );
 
       suite( "watched files", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         test( "files to render should be populated", () => {
           element.dispatchEvent( new CustomEvent( "start" ) );
 
@@ -203,6 +231,10 @@
       } );
 
       suite( "volume", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         test( "volume defaults to 0", () => {
           assert.strictEqual( element.volume, 0 );
         } );
@@ -215,6 +247,10 @@
       } );
 
       suite( "non-preview mode", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         test( "should hide the preview placeholder if not in preview mode", () => {
           const style = window.getComputedStyle( element.$.previewPlaceholder );
 
@@ -228,7 +264,7 @@
         setup( () => {
           oldIsPreview = RisePlayerConfiguration.isPreview;
           RisePlayerConfiguration.isPreview = sinon.spy( sinon.stub().returns( true ) );
-          element = fixture("test-block");
+          element = fixture( "test-block" );
         } );
 
         teardown( () => {
@@ -256,6 +292,10 @@
       } );
 
       suite( "get default files", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         test( "_getDefaultFiles should return the correct files", () => {
           element.files = "foo.mp4";
 
@@ -280,6 +320,10 @@
       })
 
       suite( "get metadata", () => {
+        setup (() => {
+          element = fixture( "test-block" );
+        } );
+
         test( "should handle no metadata", () => {
           element.metadata = null;
 
@@ -292,7 +336,116 @@
           assert.deepEqual( element._getFilesFromMetadata(), [ "foo.mp4", "bar.webm" ] );
         } );
       } );
-</script>
 
+      suite( "play until done", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
+        test( "should not set up files done timer if no files are provided", () => {
+          assert.isNotOk( element._noFilesDoneTimer);
+        } );
+
+        test( "should set up no files done timer if no files are provided", () => {
+          element.metadata = [];
+
+          assert.isOk( element._noFilesDoneTimer);
+        } );
+
+        test( "should emit report-done event if play until done is enabled", () => {
+          sinon.spy( element, "_sendDoneEvent");
+          
+          element._done();
+
+          assert.strictEqual( element._sendDoneEvent.callCount, 1);
+
+          element._sendDoneEvent.restore();
+        } );
+
+        test( "should call _done() when first download timer fires, if no files have been downloaded", () => {
+          sinon.spy( element, '_done' );
+
+          element.managedFiles = [];
+          element._handleFirstDownloadTimer();
+
+          assert.equal( element._done.callCount, 1 );
+
+          element._done.restore();
+        } );
+
+        test( "should not call _done() when first download timer fires, if some files have been downloaded", () => {
+          sinon.spy( element, '_done' );
+
+          element.managedFiles = ["a", "b", "c"];
+          element._handleFirstDownloadTimer();
+
+          assert.equal( element._done.callCount, 0 );
+
+          element._done.restore();
+        } );
+
+
+        test( "should call _done() when no files timer fires", () => {
+          sinon.spy( element, '_done' );
+
+          element._handleNoFilesTimer();
+
+          assert.equal( element._done.callCount, 1 );
+
+          element._done.restore();
+        } );
+      } );
+
+      suite( "play until done disabled", () => {
+        test( "attribute should be set correctly", () => {
+          assert.strictEqual( element.playUntilDone, false );
+        } );
+        
+        setup( () => {
+          element = fixture( "test-block-without-pud" );
+        } );
+
+        test( "should not emit report-done event if play until done is disabled", () => {
+          sinon.spy( element, "_sendDoneEvent");
+          
+          element._done();
+
+          assert.strictEqual( element._sendDoneEvent.callCount, 0);
+
+          element._sendDoneEvent.restore();
+        } );
+      } );
+
+      suite( "play until done with no files downloaded", () => {
+        setup( () => {
+          sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( () => {} );
+          element = fixture( "test-block" );
+        } );
+
+        teardown( () => {
+          RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+        } );
+
+        test( "should set up first download timer when files aren't already in storage", () => {
+          assert.isOk( element._firstDownloadTimer );
+        } );
+
+        test( "should clear first download timer if a file is received", () => {
+          assert.isOk( element._firstDownloadTimer );
+
+          element.managedFiles = []
+        } );
+      } );
+
+      suite( "play until done with files downloaded", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
+        test( "should set up first download timer when files aren't already in storage", () => {
+          assert.isNotOk( element._firstDownloadTimer );          
+        } );
+      });
+    </script>
   </body>
 </html>
