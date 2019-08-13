@@ -89,6 +89,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._validFiles = [];
     this._noFilesDoneTimer = null
     this._firstDownloadTimer = null;
+
+    // Preserve bindings to this in external callbacks
+    this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind(this);
+    this._handleNoFilesTimer = this._handleNoFilesTimer.bind(this);
   }
 
   ready() {
@@ -250,7 +254,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _handleFirstDownloadTimer() {
     if ( !this.managedFiles.length ) {
-      console.log( this.id, "first download took took too long" ); // eslint-disable-line
+      console.log( this.id, "first download took too long" ); // eslint-disable-line
       this._done();
     } else {
       console.log( this.id, this.managedFiles.length, "files after first download timer" ); // eslint-disable-line
