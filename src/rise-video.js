@@ -103,6 +103,9 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   ready() {
     super.ready();
 
+    this.addEventListener( "rise-presentation-play", () => this._reset() );
+    this.addEventListener( "rise-presentation-stop", () => this._stop() );
+    
     this.$.videoPlayer.addEventListener( "log", this._childLog.bind(this) );
     this.$.videoPlayer.addEventListener( "playlist-done", () => this._done( "playlist done" ) );
   }
@@ -152,6 +155,14 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
       this._handleNoFiles();
       this._configureShowingVideos();
     }
+  }
+
+  _stop() {
+    this._validFiles = [];
+    this._filesToRenderList = [];
+    this.stopWatch();
+    this._clearFirstDownloadTimer();
+    this._clearHandleNoFilesTimer();
   }
 
   _configureShowingVideos() {
