@@ -1,3 +1,5 @@
+/* eslint-disable no-console, one-var */
+
 import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin";
@@ -95,13 +97,14 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     // Preserve bindings to this in external callbacks
     this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind(this);
     this._handleNoFilesTimer = this._handleNoFilesTimer.bind(this);
+    this._done = this._done.bind(this);
   }
 
   ready() {
     super.ready();
 
     this.$.videoPlayer.addEventListener( "log", this._childLog.bind(this) );
-    this.$.videoPlayer.addEventListener( "playlist-done", this._done.bind(this) );
+    this.$.videoPlayer.addEventListener( "playlist-done", () => this._done( "playlist done" ) );
   }
 
   _handleStart() {
@@ -216,8 +219,9 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     return RisePlayerConfiguration.isPreview();
   }
 
-  _done() {
+  _done( reason ) {
     if ( this.playUntilDone ) {
+      console.log( this.id, "played until done", reason );
       this._sendDoneEvent( true );
     }
   }
@@ -235,7 +239,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _handleNoFilesTimer() {
-    this._done();
+    this._done( "no files" );
   }
 
   _clearFirstDownloadTimer() {
@@ -252,7 +256,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _handleFirstDownloadTimer() {
     if ( !this.managedFiles.length ) {
-      this._done();
+      this._done( "first download timeout" );
     }
   }
 }
