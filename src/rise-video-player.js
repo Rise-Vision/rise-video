@@ -243,7 +243,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _play() {
-    console.log( "play", this.files );
     if (!this._playerInstance) {
       return;
     }

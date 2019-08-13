@@ -136,8 +136,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
 
-    console.log( this.id, "start", validFiles ); //eslint-disable-line
-
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
 
@@ -218,7 +216,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _done() {
     if ( this.playUntilDone ) {
-      console.log( this.id, "done" ); // eslint-disable-line
       this._sendDoneEvent( true );
     }
   }
@@ -236,7 +233,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _handleNoFilesTimer() {
-    console.log( this.id, "no files" ); // eslint-disable-line
     this._done();
   }
 
@@ -249,17 +245,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _waitForFirstDownload() {
     this._clearFirstDownloadTimer();
 
-    console.log( this.id, "wait for first download" ); //eslint-disable-line
-
     this._firstDownloadTimer = setTimeout( this._handleFirstDownloadTimer, this._maximumTimeForFirstDownload );
   }
 
   _handleFirstDownloadTimer() {
     if ( !this.managedFiles.length ) {
-      console.log( this.id, "first download took too long" ); // eslint-disable-line
       this._done();
-    } else {
-      console.log( this.id, this.managedFiles.length, "files after first download timer" ); // eslint-disable-line
     }
   }
 }
