@@ -22,7 +22,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
           width: 100%;
           height: 100%;
         }
-        
+
         #previewPlaceholder {
           display: none;
           position: absolute;
@@ -108,7 +108,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
     this.addEventListener( "rise-presentation-play", this._startPresentation );
     this.addEventListener( "rise-presentation-stop", this._stopPresentation );
-    
+
     this.$.videoPlayer.addEventListener( "log", this._childLog );
     this.$.videoPlayer.addEventListener( "playlist-done", () => this._done( "playlist done" ) );
   }
@@ -144,13 +144,13 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this.stopWatch();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
-    
+
     if ( this._hasMetadata() ) {
       filesList = this._getFilesFromMetadata();
     } else {
       filesList = this._getDefaultFiles();
     }
-      
+
     const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
 
     if ( validFiles && validFiles.length > 0 ) {
@@ -211,7 +211,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _reset() {
     if ( !this._initialStart ) {
       const filesToLog = !this._hasMetadata() ? this.files : this._getFilesFromMetadata();
-      
+
       this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
     }
 
