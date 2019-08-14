@@ -86,6 +86,7 @@
       suite( "logging", () => {
         setup (() => {
           element = fixture( "test-block" );
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         const componentData = {
@@ -95,8 +96,6 @@
         };
 
         test( "should log 'video-start' event with correct params", () => {
-          element.dispatchEvent( new CustomEvent( "start" ) );
-
           assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 0 ], componentData );
           assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 1 ], "video-start" );
           assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], { files: FILES } );
@@ -144,11 +143,10 @@
       suite( "valid filenames", () => {
         setup (() => {
           element = fixture( "test-block" );
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         test( "invalid files are filtered out", () => {
-          element.dispatchEvent( new CustomEvent( "start" ) );
-
           assert.deepEqual( element._validFiles, [ "test1.mp4", "test3.webm" ] );
         } );
 

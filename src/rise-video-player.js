@@ -51,6 +51,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         type: Number,
         value: 0,
       },
+      playUntilDone: {
+        type: Boolean,
+        value: false
+      },
       // Used during testing to allow player initialization to be
       // deferred until stubs, etc.. are in place
       skipPlayerInit: {
@@ -126,7 +130,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onEnded() {
     if ( this._isDone() ) {
       this.dispatchEvent( new CustomEvent( "playlist-done" ) );
-      this._playFirst();
+
+      // if ( !this.playUntilDone ) {
+        this._playFirst();
+      // }
     } else {
       this._playerInstance.playlist.next();
     }

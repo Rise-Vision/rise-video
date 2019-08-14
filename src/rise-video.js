@@ -38,7 +38,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
         }
       </style>
       <div id="previewPlaceholder"></div>
-      <rise-video-player id="videoPlayer" files="{{_filesToRenderList}}" volume="[[volume]]"></rise-video-player>
+      <rise-video-player id="videoPlayer" files="{{_filesToRenderList}}" volume="[[volume]]" play-until-done="{{playUntilDone}}"></rise-video-player>
     `;
   }
 
@@ -95,22 +95,37 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._noFilesDoneDelay = NO_FILES_DONE_DELAY;
 
     // Preserve bindings to this in external callbacks
-    this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind(this);
-    this._handleNoFilesTimer = this._handleNoFilesTimer.bind(this);
-    this._done = this._done.bind(this);
+    this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind( this );
+    this._handleNoFilesTimer = this._handleNoFilesTimer.bind( this );
+    this._childLog = this._childLog.bind( this );
+    this._done = this._done.bind( this );
+    this._startPresentation = this._startPresentation.bind( this );
+    this._stopPresentation = this._stopPresentation.bind( this );
   }
 
   ready() {
     super.ready();
 
-    this.addEventListener( "rise-presentation-play", () => this._reset() );
-    this.addEventListener( "rise-presentation-stop", () => this._stop() );
+    this.addEventListener( "rise-presentation-play", this._startPresentation );
+    this.addEventListener( "rise-presentation-stop", this._stopPresentation );
     
-    this.$.videoPlayer.addEventListener( "log", this._childLog.bind(this) );
+    this.$.videoPlayer.addEventListener( "log", this._childLog );
     this.$.videoPlayer.addEventListener( "playlist-done", () => this._done( "playlist done" ) );
   }
 
+  _stopPresentation() {
+    console.log( this.id, "_stopPresentation" );
+    this._stop();
+  }
+
+  _startPresentation() {
+    console.log( this.id, "_startPresentation" );
+    this._reset();
+  }
+
   _handleStart() {
+    console.log( this.id, "_handleStart" );
+
     if ( this._initialStart ) {
       this._initialStart = false;
 
@@ -124,11 +139,17 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     const isPreview = this._isPreview;
     let filesList;
 
+    console.log( this.id, "start" );
+
     this.$.previewPlaceholder.style.display = isPreview ? "block" : "";
 
     if ( this._isPreview ) {
       return;
     }
+
+    this.stopWatch();
+    this._clearFirstDownloadTimer();
+    this._clearHandleNoFilesTimer();
     
     if ( this._hasMetadata() ) {
       filesList = this._getFilesFromMetadata();
@@ -137,10 +158,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     }
       
     const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
-
-    this.stopWatch();
-    this._clearFirstDownloadTimer();
-    this._clearHandleNoFilesTimer();
 
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
@@ -158,6 +175,8 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _stop() {
+    console.log( this.id, "_stop" );
+    
     this._validFiles = [];
     this._filesToRenderList = [];
     this.stopWatch();
@@ -198,9 +217,13 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _reset() {
-    const filesToLog = !this._hasMetadata() ? this.files : this._getFilesFromMetadata();
-    
-    this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
+    if ( !this._initialStart ) {
+      const filesToLog = !this._hasMetadata() ? this.files : this._getFilesFromMetadata();
+      
+      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
+    }
+
+    console.log( this.id, "_reset" );
     this._start();
   }
 
@@ -233,6 +256,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _done( reason ) {
     if ( this.playUntilDone ) {
       console.log( this.id, `played until done (${reason})` );
+      // this._stop();
       this._sendDoneEvent( true );
     }
   }
