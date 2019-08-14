@@ -114,18 +114,14 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _stopPresentation() {
-    console.log( this.id, "_stopPresentation" );
     this._stop();
   }
 
   _startPresentation() {
-    console.log( this.id, "_startPresentation" );
     this._reset();
   }
 
   _handleStart() {
-    console.log( this.id, "_handleStart" );
-
     if ( this._initialStart ) {
       this._initialStart = false;
 
@@ -138,8 +134,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _start() {
     const isPreview = this._isPreview;
     let filesList;
-
-    console.log( this.id, "start" );
 
     this.$.previewPlaceholder.style.display = isPreview ? "block" : "";
 
@@ -175,8 +169,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _stop() {
-    console.log( this.id, "_stop" );
-    
     this._validFiles = [];
     this._filesToRenderList = [];
     this.stopWatch();
@@ -223,7 +215,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
       this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
     }
 
-    console.log( this.id, "_reset" );
     this._start();
   }
 
@@ -253,10 +244,9 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     return RisePlayerConfiguration.isPreview();
   }
 
-  _done( reason ) {
+  _done() {
     if ( this.playUntilDone ) {
-      console.log( this.id, `played until done (${reason})` );
-      // this._stop();
+      this._stop();
       this._sendDoneEvent( true );
     }
   }
