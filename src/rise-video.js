@@ -246,7 +246,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   _done() {
     if ( this.playUntilDone ) {
-      this._stop();
       this._sendDoneEvent( true );
     }
   }
@@ -254,6 +253,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _clearHandleNoFilesTimer() {
     if ( this._noFilesDoneTimer ) {
       clearTimeout( this._noFilesDoneTimer );
+      this._noFilesDoneTimer = null;
     }
   }
 
@@ -270,6 +270,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _clearFirstDownloadTimer() {
     if ( this._firstDownloadTimer ) {
       clearTimeout( this._firstDownloadTimer );
+      this._firstDownloadTimer = null;
     }
   }
 
