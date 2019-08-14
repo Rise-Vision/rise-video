@@ -190,8 +190,11 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
   watchedFileAddedCallback() {
     this._configureShowingVideos();
-    this._clearHandleNoFilesTimer();
-    this._clearFirstDownloadTimer();
+
+    if ( this._filesToRenderList.length) {
+      this._clearHandleNoFilesTimer();
+      this._clearFirstDownloadTimer();
+    }
   }
 
   watchedFileDeletedCallback( details ) {
