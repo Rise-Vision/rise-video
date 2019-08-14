@@ -164,9 +164,13 @@
           element = fixture("test-block");
         } );
 
-        test( "player volume should default to 0 and be muted intially", () => {
-          assert.strictEqual( element._playerInstance.volume(), 0 );
-          assert.strictEqual( element._playerInstance.muted(), true );
+        test( "player volume should default to 0 and be muted intially", done => {
+          element._playerInstance.on( "play", () => {
+            assert.strictEqual( element._playerInstance.volume(), 0 );
+            assert.strictEqual( element._playerInstance.muted(), true );
+
+            done();
+          } );
         } );
 
         test( "setting volume should behave as expected", () => {
@@ -212,7 +216,7 @@
           } );
         } );
 
-        test( "A video should work in a container with no dimensions",  done => {
+        test( "a video should work in a container with no dimensions",  done => {
           element = fixture("test-block-no-container");
 
           element._initPlayer();
@@ -227,6 +231,28 @@
             assert.isTrue( videoBounds.height > 0 );
 
             done();
+          } );
+        } );
+
+        suite( "play until done", () => {
+          setup (() => {
+            element = fixture("test-block");
+          } );
+
+          test( "report-done should be emitted when playlist finishes", done => {
+            sinon.spy( element, "dispatchEvent" );
+
+            let count = 0;
+            element._playerInstance.on( "play", () => {
+              count++;
+
+              if ( count > element.files.length ) {
+                assert.isOk( element.dispatchEvent.getCalls().some( call => call.args[0].type === "playlist-done" ) );
+                element.dispatchEvent.restore();
+                done();
+              }
+            } );
+
           } );
         } );
       } );

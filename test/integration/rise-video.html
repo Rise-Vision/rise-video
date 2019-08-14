@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rise-video test</title>
+
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../../node_modules/wct-mocha/wct-mocha.js"></script>
+    <script src="../../node_modules/video.js/dist/video.min.js"></script>
+    <script src="../../node_modules/videojs-playlist/dist/videojs-playlist.min.js"></script>
+
+    <script type="text/javascript">
+      const sampleUrl = path => `videos/${ path }`;
+
+      RisePlayerConfiguration = {
+        isConfigured: () => true,
+        isPreview: () => false,
+        Logger: {
+          info: sinon.spy(),
+          error: sinon.spy(),
+          warning: sinon.spy()
+        },
+        LocalStorage: {
+          watchSingleFile: () => {}
+        }
+      };
+    </script>
+
+    <script type="module" src="../../src/rise-video.js"></script>
+  </head>
+  <body>
+    <test-fixture id="test-block">
+      <template>
+        <rise-video
+          id="rise-video-01"
+          files=""
+          play-until-done>
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
+    <script type="module">
+      let element;
+
+      teardown( () => {
+        if ( element.$.videoPlayer && element.$.videoPlayer._playerInstance ) {
+          element.$.videoPlayer._playerInstance.dispose();
+        }
+      });
+
+      suite( "play until done", () => {
+        setup (() => {
+          element = fixture("test-block");
+          element._maximumTimeForFirstDownload = 500;
+          element._noFilesDoneDelay = 500;
+        } );
+
+        test( "should wait for the correct amount of time when no files are received before emitting report-done", done => {
+          sinon.spy( element, "_sendDoneEvent" );
+
+          element.metadata = [];
+
+          setTimeout( () => {
+            assert.strictEqual( element._sendDoneEvent.callCount, 0 );
+          }, 200 );
+
+          setTimeout( () => {
+            assert.equal( element._sendDoneEvent.callCount, 1 );
+
+            element._sendDoneEvent.restore();
+            done();
+          }, 500 );
+        } );
+
+        test( "should wait for the correct amount of time for first download before emitting report-done", done => {
+          let finished = false;
+
+          sinon.stub( RisePlayerConfiguration.LocalStorage, "watchSingleFile").callsFake( (file, handler) => {
+            setTimeout( () => {
+              if (finished) { return; }
+              handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+            }, 1000 );
+          } );
+
+          sinon.spy( element, "_sendDoneEvent" );
+          element.metadata = [ {file: "test1-0.5s-noaudio.mp4"}, {file: "test2-0.5s-noaudio.mp4"} ];
+
+          setTimeout( () => {
+            assert.equal( element._sendDoneEvent.callCount, 1 );
+
+            finished = true;
+            element._sendDoneEvent.restore();
+            RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+            done();
+          }, 500 );
+        } );
+
+        test( "should not emit report-done if at least one file finished in time", done => {
+          let finished = false;
+
+          sinon.stub( RisePlayerConfiguration.LocalStorage, "watchSingleFile").callsFake( (file, handler) => {
+            setTimeout( () => {
+              if (finished) { return; }
+              handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+            }, 250 );
+          } );
+
+          sinon.spy( element, "_sendDoneEvent" );
+          element.metadata = [ {file: "test1-0.5s-noaudio.mp4"}, {file: "test2-0.5s-noaudio.mp4"} ];
+
+          setTimeout( () => {
+            assert.equal( element._sendDoneEvent.callCount, 0 );
+
+            finished = true;
+            element._sendDoneEvent.restore();
+            RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+            done();
+          }, 500 );
+        } );
+      } );
+  </script>
+
+  </body>
+</html>
