@@ -473,6 +473,46 @@
           assert.isNotOk( element._firstDownloadTimer );          
         } );
       });
+
+      suite( "presentation-events", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
+        test( "calling _stop should clear timeouts and stop playing videos", () => {
+          assert.isOk( element._validFiles.length );
+          assert.isOk( element._filesToRenderList.length );
+
+          element._waitForFirstDownload();
+          element._handleNoFiles();
+          element._stop();
+
+          assert.deepEqual( element._validFiles, [] );
+          assert.deepEqual( element._filesToRenderList, [] );
+          assert.strictEqual( element._firstDownloadTimer, null );
+          assert.strictEqual( element._noFilesDoneTimer, null );
+        } );
+
+        test( "should call _stop when rise-presentation-stop is received", () => {
+          sinon.spy( element, "_stop");
+
+          element.dispatchEvent( new CustomEvent( "rise-presentation-stop" ) );
+
+          assert.equal( element._stop.callCount, 1 );
+
+          element._stop.restore();
+        } );
+
+        test( "should call _reset when rise-presentation-play is received", () => {
+          sinon.spy( element, "_reset");
+
+          element.dispatchEvent( new CustomEvent( "rise-presentation-play" ) );
+
+          assert.equal( element._reset.callCount, 1 );
+
+          element._reset.restore();
+        } );
+      } );
     </script>
   </body>
 </html>
