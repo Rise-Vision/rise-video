@@ -45,6 +45,17 @@
       </template>
     </test-fixture>
 
+    <test-fixture id="test-block-skip-init">
+      <template>
+        <rise-video
+          id="rise-video-01"
+          files=""
+          play-until-done
+          skip-player-init="true">
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
     <script type="module">
       let element;
 
@@ -122,6 +133,56 @@
             RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
             done();
           }, 500 );
+        } );
+      } );
+
+      suite( "presentation events", () => {
+        setup( () => {
+          sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( (file, handler) => {
+            handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+          } );
+          element = fixture("test-block-skip-init");
+        } );
+
+        teardown( () => {
+          RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+        } );
+
+        test( "should stop playing videos when rise-presentation-stop event is received", done => {
+          element.$.videoPlayer._initPlayer();
+          element.files = "test1-0.5s-noaudio.mp4";
+          element.$.videoPlayer._playerInstance.on( "playing", () => {
+            assert.isOk( element.$.videoPlayer.files.length );
+            assert.equal( element.$.videoPlayer._playerInstance.duration(), 0.512 );
+
+            element.dispatchEvent( new CustomEvent( "rise-presentation-stop" ) );
+            assert.deepEqual( element.$.videoPlayer.files, [] );
+
+            setTimeout( () => {
+              assert.isTrue( isNaN(element.$.videoPlayer._playerInstance.duration()) );
+
+              done();
+            } );
+          } );
+        } );
+
+        test( "should start playing videos when rise-presentation-start event is received", done => {
+          element.$.videoPlayer._initPlayer();
+          element.files = "test1-0.5s-noaudio.mp4";
+
+          assert.isOk( element.$.videoPlayer.files.length );
+
+          element.dispatchEvent( new CustomEvent( "rise-presentation-stop" ) );
+
+          assert.deepEqual( element.$.videoPlayer.files, [] );
+
+          element.dispatchEvent( new CustomEvent( "rise-presentation-play" ) );
+
+          element.$.videoPlayer._playerInstance.on( "playing", () => {
+            assert.equal( element.$.videoPlayer._playerInstance.duration(), 0.512 );
+
+            done();
+          } );
         } );
       } );
   </script>

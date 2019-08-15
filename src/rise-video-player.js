@@ -51,10 +51,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         type: Number,
         value: 0,
       },
-      playUntilDone: {
-        type: Boolean,
-        value: false
-      },
       // Used during testing to allow player initialization to be
       // deferred until stubs, etc.. are in place
       skipPlayerInit: {
@@ -130,10 +126,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onEnded() {
     if ( this._isDone() ) {
       this.dispatchEvent( new CustomEvent( "playlist-done" ) );
-
-      // if ( !this.playUntilDone ) {
-        this._playFirst();
-      // }
+      this._playFirst();
     } else {
       this._playerInstance.playlist.next();
     }
@@ -176,7 +169,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         currentSrc: this._playerInstance.currentSrc(),
         filePath: this._getFilePathFromSrc( this._playerInstance.currentSrc() )
       };
-      
+
       this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
     }
   }
@@ -184,7 +177,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onPlay() {
     // reset count since this event is evidence of successful play
     this._decodeRetryCount = 0;
-    
+
     // playlist has been cleared since we started trying to play a video,
     // so we need to reset the player
     if ( !this.files.length ) {
