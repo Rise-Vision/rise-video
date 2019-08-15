@@ -31,6 +31,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         .video-js {
           background: transparent !important;
         }
+
+        .vjs-error-display {
+          display: none !important;
+        }
       </style>
       <video id="video" class="video-js"></video>
     `;
@@ -139,6 +143,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onError() {
     const error = this._playerInstance.error();
 
+    console.log("error", error);
+
     if ( error && error.code === 3 ) {
       console.log( "DECODE error retry count", this._decodeRetryCount );
       if ( this._decodeRetryCount < this._maxDecodeRetries ) {
@@ -246,7 +252,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     if (!this._playerInstance) {
       return;
     }
-    
+
     // set a new source
     if ( this.files ) {
       this._initPlaylist();
