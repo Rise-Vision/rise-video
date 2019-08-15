@@ -32,7 +32,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
           background: transparent !important;
         }
 
-        .vjs-error-display {
+        .vjs-modal-dialog,
+        .vjs-poster {
           display: none !important;
         }
       </style>
@@ -143,8 +144,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   _onError() {
     const error = this._playerInstance.error();
 
-    console.log("error", error);
-
     if ( error && error.code === 3 ) {
       console.log( "DECODE error retry count", this._decodeRetryCount );
       if ( this._decodeRetryCount < this._maxDecodeRetries ) {
@@ -153,7 +152,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         // delay and then force a play()
         setTimeout( () => {
           console.log( "DECODE error retry play()" );
-          this._play();
+          this._playerInstance.play();
         }, this._decodeRetryDelay );
 
         return;
@@ -177,6 +176,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       };
 
       this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
+      this._onEnded(); // skip to the next video
     }
   }
 

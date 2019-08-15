@@ -17,7 +17,7 @@
 
     <script type="text/javascript">
       const sampleUrl = path => `videos/${ path }`;
-      const sampleHref = path => window.location.href.replace( "videojs.html", "videos/" + path );
+      const sampleHref = path => window.location.href.replace( "rise-video-player.html", "videos/" + path );
 
       RisePlayerConfiguration = {
         isConfigured: () => true,
@@ -79,6 +79,15 @@
       </template>
     </test-fixture>
 
+    <test-fixture id="test-block-errors">
+      <template>
+        <rise-video-player
+          id="rise-video-player-errors"
+          files='[{ "filePath": "lowres-96x54-5s-noaudio.mp4", "fileUrl": "./videos/lowres-96x54-5s-noaudio.mp4" }, { "filePath": "test1-0.5s-noaudio.mp4", "fileUrl": "./videos/test1-0.5s-noaudio.mp4" }]'>
+        </rise-video-player>
+      </template>
+    </test-fixture>
+
     <script type="module">
       let element;
 
@@ -97,6 +106,9 @@
           const container = element.root.querySelector( "div.video-js" );
           const allowedSiblings = [ container.querySelector( "video" ), container.querySelector( ".vjs-text-track-display" ) ];
           const siblings = Array.from(container.children);
+
+          siblings.forEach( sibling => sibling.classList.remove( "vjs-hidden" ) ); // force elements to be visible
+
           const disallowedSiblings = siblings.filter(el => !allowedSiblings.includes( el ) && window.getComputedStyle(el).display !== "none" );
 
           assert.equal( disallowedSiblings.length, 0 );
@@ -153,12 +165,12 @@
 
           sinon.spy( element, "_onEnded" );
           element._initPlayer();
-          
+
           element._playerInstance.on( "playlistitem", playlistitemSpy );
           element._playerInstance.on( "play", onPlay );
         });
       } );
-  
+
       suite( "volume", () => {
         setup (() => {
           element = fixture("test-block");
@@ -198,7 +210,7 @@
 
       suite( "responsive", () => {
         setup( () => {} );
-        
+
         test( "A video should fill its container",  done => {
           element = fixture("test-block-16x9").children[0];
 
@@ -220,7 +232,7 @@
           element = fixture("test-block-no-container");
 
           element._initPlayer();
-          
+
           element._playerInstance.on( "playing", () => {
             const videoBounds = element.$.video.getBoundingClientRect();
             const elementBounds = element.getBoundingClientRect();
@@ -254,6 +266,20 @@
             } );
 
           } );
+        } );
+      } );
+
+      suite( "errors", () => {
+        setup (() => {
+          element = fixture("test-block-errors");
+        } );
+
+        test( "should play next video in playlist when an error is encountered", done => {
+          // TODO
+        } );
+
+        test( "should re-try playback the correct number of times when encountering decode errors", () => {
+          // TODO
         } );
       } );
   </script>
