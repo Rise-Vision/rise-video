@@ -11,6 +11,21 @@ export const VALID_FILE_TYPES = [ "mp4", "webm" ];
 export const MAXIMUM_TIME_FOR_FIRST_DOWNLOAD = 15 * 1000;
 export const NO_FILES_DONE_DELAY = 10 * 1000;
 
+// If running in Viewer, detect whether the template has been initially hidden
+// or not so we can prevent playback.
+
+let initiallyHidden = false;
+
+try {
+  if ( window.frameElement ) {
+    if (window.frameElement.parentElement.style.visibility === "hidden" ) {
+      initiallyHidden = true;
+    }
+  }
+} catch(e) {
+  //
+}
+
 export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
   static get template() {
     return html`
@@ -38,7 +53,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
         }
       </style>
       <div id="previewPlaceholder"></div>
-      <rise-video-player id="videoPlayer" files="{{_filesToRenderList}}" volume="[[volume]]" play-until-done="{{playUntilDone}}"></rise-video-player>
+      <rise-video-player id="videoPlayer" files="{{_filesToRenderList}}" volume="[[volume]]"></rise-video-player>
     `;
   }
 
@@ -93,6 +108,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._firstDownloadTimer = null;
     this._maximumTimeForFirstDownload = MAXIMUM_TIME_FOR_FIRST_DOWNLOAD;
     this._noFilesDoneDelay = NO_FILES_DONE_DELAY;
+    this._presentationStarted = initiallyHidden ? false : true;
 
     // Preserve bindings to this in external callbacks
     this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind( this );
@@ -114,10 +130,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _stopPresentation() {
+    this._presentationStarted = false;
     this._stop();
   }
 
   _startPresentation() {
+    this._presentationStarted = true;
     this._reset();
   }
 
@@ -177,6 +195,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _configureShowingVideos() {
+    if ( !this._presentationStarted ) {
+      return;
+    }
+
     this._filesToRenderList = this.managedFiles
       .slice( 0 )
       .filter( f => this._validFiles.includes( f.filePath ) );
