@@ -16,7 +16,7 @@
     <script type="text/javascript">
 
       // Sample data
-      
+
       const FILES = [ "test1.mp4", "test2.webm" ];
       const sampleUrl = path => `https://storage.googleapis.com/${ path }`;
       const sampleType = file => 'video/' + file.split( "." ).pop();
@@ -248,7 +248,7 @@
           sinon.spy( element, "_setVolume" );
 
           element.volume = 50;
-          
+
           assert.deepEqual( element._setVolume.lastCall.args, [ 50 ] );
 
           sinon.restore();
@@ -262,7 +262,7 @@
 
           element.volume = -400;
           assert.equal( element.volume, 0 );
-          assert.deepEqual( element._playerInstance.volume.lastCall.args, [ 0 ] );    
+          assert.deepEqual( element._playerInstance.volume.lastCall.args, [ 0 ] );
         } );
 
         test( "video should be muted when volume is set to 0", () => {
@@ -290,7 +290,7 @@
         teardown( () => {
           element._log.restore();
         } );
-        
+
         test( "should log error when playlist plugin doesn't load", () => {
           const oldPlaylist = playlist;
 
@@ -363,7 +363,7 @@
           test( "should determine when playlist is done", () => {
             element._playerInstance.playlist = sinon.stub().returns( ['a', 'b', 'c', 'd'] );
             element._playerInstance.playlist.currentItem = sinon.stub().returns( 2 );
-            
+
             assert.equal( element._isDone(), false );
 
             element._playerInstance.playlist.currentItem.returns( 3 );
@@ -389,7 +389,7 @@
             element._playerInstance.playlist = sinon.stub().returns( ['a', 'b', 'c'] );
             element._playerInstance.playlist.currentItem = sinon.stub().returns( 0 );
             element._playerInstance.playlist.next = sinon.stub();
-            
+
             element._onEnded();
 
             assert.strictEqual( element.dispatchEvent.callCount, 0 );

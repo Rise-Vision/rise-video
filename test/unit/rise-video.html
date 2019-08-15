@@ -268,7 +268,7 @@
 
         test( "volume updates in video player when changed", () => {
           element.volume = 75;
-          
+
           assert.strictEqual( element.$.videoPlayer.volume, 75 );
         } );
       } );
@@ -381,7 +381,7 @@
 
         test( "should emit report-done event if play until done is enabled", () => {
           sinon.spy( element, "_sendDoneEvent");
-          
+
           element._done();
 
           assert.strictEqual( element._sendDoneEvent.callCount, 1);
@@ -427,14 +427,14 @@
         test( "attribute should be set correctly", () => {
           assert.strictEqual( element.playUntilDone, false );
         } );
-        
+
         setup( () => {
           element = fixture( "test-block-without-pud" );
         } );
 
         test( "should not emit report-done event if play until done is disabled", () => {
           sinon.spy( element, "_sendDoneEvent");
-          
+
           element._done();
 
           assert.strictEqual( element._sendDoneEvent.callCount, 0);
@@ -470,7 +470,7 @@
         } );
 
         test( "should set up first download timer when files aren't already in storage", () => {
-          assert.isNotOk( element._firstDownloadTimer );          
+          assert.isNotOk( element._firstDownloadTimer );
         } );
       });
 
