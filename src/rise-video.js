@@ -23,7 +23,7 @@ try {
     }
   }
 } catch(e) {
-  //
+  console.log( "There was a problem accessing the parent document" );
 }
 
 export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
