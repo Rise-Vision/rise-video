@@ -79,15 +79,6 @@
       </template>
     </test-fixture>
 
-    <test-fixture id="test-block-errors">
-      <template>
-        <rise-video-player
-          id="rise-video-player-errors"
-          files='[{ "filePath": "lowres-96x54-5s-noaudio.mp4", "fileUrl": "./videos/lowres-96x54-5s-noaudio.mp4" }, { "filePath": "test1-0.5s-noaudio.mp4", "fileUrl": "./videos/test1-0.5s-noaudio.mp4" }]'>
-        </rise-video-player>
-      </template>
-    </test-fixture>
-
     <script type="module">
       let element;
 
@@ -266,20 +257,6 @@
             } );
 
           } );
-        } );
-      } );
-
-      suite( "errors", () => {
-        setup (() => {
-          element = fixture("test-block-errors");
-        } );
-
-        test( "should play next video in playlist when an error is encountered", done => {
-          // TODO
-        } );
-
-        test( "should re-try playback the correct number of times when encountering decode errors", () => {
-          // TODO
         } );
       } );
   </script>
