@@ -177,7 +177,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
       this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
       this._onEnded(); // skip to the next video
-      this._setUptime( true );
+      this._setUptimeError( true );
     }
   }
 
@@ -317,7 +317,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this.dispatchEvent( new CustomEvent( "log", { detail: { type, event, details, additionalFields } } ) );
   }
 
-  _setUptime( enabled ) {
+  _setUptimeError( enabled ) { // overrides method in RiseElement
     this.dispatchEvent( new CustomEvent( "set-uptime", { detail: { enabled } } ) );
   }
 

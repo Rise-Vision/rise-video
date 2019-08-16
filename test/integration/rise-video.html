@@ -205,12 +205,12 @@
         test( "should successfully call _setUptimeError in parent", () => {
           sinon.spy( element, "_setUptimeError" );
 
-          element.$.videoPlayer._setUptime( true );
+          element.$.videoPlayer._setUptimeError( true );
 
           assert.isOk( element._setUptimeError.calledOnceWithExactly( true ) );
 
           element._setUptimeError.resetHistory();
-          element.$.videoPlayer._setUptime( false );
+          element.$.videoPlayer._setUptimeError( false );
 
           assert.isOk( element._setUptimeError.calledOnceWithExactly( false ) );
 
