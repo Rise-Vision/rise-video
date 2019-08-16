@@ -173,6 +173,11 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
     const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
 
+    if ( filesList && filesList.length && ( !validFiles || !validFiles.length ) ) {
+      // there are some files, but all formats are invalid
+      this._setUptimeError( true );
+    }
+
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
 
@@ -242,6 +247,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
       this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
     }
 
+    this._setUptimeError( false );
     this._start();
   }
 

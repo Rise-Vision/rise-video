@@ -177,6 +177,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
       this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
       this._onEnded(); // skip to the next video
+      this._setUptime( true );
     }
   }
 
