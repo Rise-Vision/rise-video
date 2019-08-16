@@ -38,7 +38,7 @@
         }
       };
 
-      let playlist = sinon.spy();
+      let playlist = sinon.spy( sinon.stub().returns( [] ) );
       const videojs = () => {
         const videojs = {
           currentSrc: sinon.spy( sinon.stub().returns( "https://storage.googleapis.com/test1.mp4" ) ),
@@ -130,23 +130,45 @@
       suite( "_onError", () => {
         test( "decode errors result in the correct number of retries", done => {
           const oldErrorFunction = element._playerInstance.error;
+          const oldPlayFunction = element._playerInstance.play;
 
+          sinon.spy( element, "_play" );
           element._decodeRetryDelay = 10;
 
-          element._playerInstance.error = sinon.stub().callsFake(() => ({ code: 3}) );
-          sinon.stub( element, "_play" ).callsFake( () => element._onError() );
+          element._playerInstance.error = sinon.stub().callsFake(() => ( { code: 3}) );
+          element._playerInstance.play = sinon.spy( sinon.stub().callsFake( () => {
+            element._onError();
 
-          element._play();
+            return new Promise( resolve => resolve() );
+          } ) );
 
-          setTimeout( () => {
-            assert.equal( element._play.callCount, element._maxDecodeRetries + 1 );
+          sinon.spy( sinon.stub( element, "_onEnded" ).callsFake( () => {
+            assert.equal( element._playerInstance.play.callCount, element._maxDecodeRetries + 1 );
             assert.equal( element._decodeRetryCount, element._maxDecodeRetries );
 
             element._playerInstance.error = oldErrorFunction;
+            element._playerInstance._play = oldPlayFunction;
             element._play.restore();
+            element._onEnded.restore();
 
             done();
-          }, 500 );
+          } ) );
+
+          element._play();
+        } );
+
+        test( "should play next video in playlist when an error is encountered", () => {
+          const oldErrorFunction = element._playerInstance.error;
+
+          element._playerInstance.error = sinon.stub().callsFake(() => ({ code: 1}) );
+          sinon.spy( element, "_onEnded" );
+
+          element._onError();
+
+          assert.equal( element._onEnded.callCount, 1 );
+
+          element._playerInstance.error = oldErrorFunction;
+          element._onEnded.restore();
         } );
       } );
 

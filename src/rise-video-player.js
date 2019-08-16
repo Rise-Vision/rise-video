@@ -31,6 +31,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         .video-js {
           background: transparent !important;
         }
+
+        .vjs-modal-dialog,
+        .vjs-poster {
+          display: none !important;
+        }
       </style>
       <video id="video" class="video-js"></video>
     `;
@@ -147,7 +152,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         // delay and then force a play()
         setTimeout( () => {
           console.log( "DECODE error retry play()" );
-          this._play();
+          this._playerInstance.play();
         }, this._decodeRetryDelay );
 
         return;
@@ -171,6 +176,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       };
 
       this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
+      this._onEnded(); // skip to the next video
     }
   }
 
@@ -246,7 +252,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     if (!this._playerInstance) {
       return;
     }
-    
+
     // set a new source
     if ( this.files ) {
       this._initPlaylist();
