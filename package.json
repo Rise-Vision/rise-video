@@ -1,6 +1,6 @@
 {
   "name": "rise-video",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Web component for playing video files on a Rise Vision Template page",
   "scripts": {
     "prebuild": "eslint .",
