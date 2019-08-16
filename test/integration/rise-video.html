@@ -185,6 +185,38 @@
           } );
         } );
       } );
+
+      suite( "child events", () => {
+        setup (() => {
+          element = fixture("test-block");
+        } );
+
+        test( "should successfully pass logs to parent and then to Logger", () => {
+          element.$.videoPlayer._log( "error", "test-error", { foo: "bar" }, { bar: "baz" } );
+
+          assert.isOk( RisePlayerConfiguration.Logger.error.calledWithExactly(
+            { id: "rise-video-01", name: "rise-video", version: "__VERSION__" },
+            "test-error",
+            { foo: "bar" },
+            { bar: "baz" }
+          ) );
+        } );
+
+        test( "should successfully call _setUptimeError in parent", () => {
+          sinon.spy( element, "_setUptimeError" );
+
+          element.$.videoPlayer._setUptime( true );
+
+          assert.isOk( element._setUptimeError.calledOnceWithExactly( true ) );
+
+          element._setUptimeError.resetHistory();
+          element.$.videoPlayer._setUptime( false );
+
+          assert.isOk( element._setUptimeError.calledOnceWithExactly( false ) );
+
+          element._setUptimeError.restore();
+        } );
+      } );
   </script>
 
   </body>

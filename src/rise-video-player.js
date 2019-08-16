@@ -316,6 +316,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this.dispatchEvent( new CustomEvent( "log", { detail: { type, event, details, additionalFields } } ) );
   }
 
+  _setUptime( enabled ) {
+    this.dispatchEvent( new CustomEvent( "set-uptime", { detail: { enabled } } ) );
+  }
+
   _resetPlayer() {
     this._playerInstance.reset();
     this._setVolume( this.volume );

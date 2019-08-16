@@ -114,6 +114,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind( this );
     this._handleNoFilesTimer = this._handleNoFilesTimer.bind( this );
     this._childLog = this._childLog.bind( this );
+    this._childSetUptime = this._childSetUptime.bind( this );
     this._done = this._done.bind( this );
     this._startPresentation = this._startPresentation.bind( this );
     this._stopPresentation = this._stopPresentation.bind( this );
@@ -126,6 +127,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this.addEventListener( "rise-presentation-stop", this._stopPresentation );
 
     this.$.videoPlayer.addEventListener( "log", this._childLog );
+    this.$.videoPlayer.addEventListener( "set-uptime", this._childSetUptime );
     this.$.videoPlayer.addEventListener( "playlist-done", () => this._done( "playlist done" ) );
   }
 
@@ -263,6 +265,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     const { type, event, details, additionalFields } = e.detail;
 
     this.log( type, event, details, additionalFields );
+  }
+
+  _childSetUptime( e ) {
+    const { enabled } = e.detail;
+
+    this._setUptimeError ( enabled );
   }
 
   get _isPreview() {
