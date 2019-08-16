@@ -513,6 +513,34 @@
           element._reset.restore();
         } );
       } );
+
+      suite( "uptime", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+          sinon.spy( element, "_setUptimeError" );
+        } );
+
+        teardown( () => {
+          element._setUptimeError.restore();
+        } );
+
+        test( "should end uptime when no valid files are provided", () => {
+          element.metadata = [ { file: "foo.jpg" }, { file: "bar.csv" } ];
+
+          assert.deepEqual( element._setUptimeError.lastCall.args, [ true ] );
+        } );
+
+        test( "should not end uptime when no files are provided", () => {
+          element.metadata = [];
+
+          assert.deepEqual( element._setUptimeError.lastCall.args, [ false ] );
+        } );
+
+        test( "shoud reset uptime when _reset is called", () => {
+          element._reset();
+          assert.isOk( element._setUptimeError.calledOnceWithExactly( false ) );
+        } );
+      } );
     </script>
   </body>
 </html>

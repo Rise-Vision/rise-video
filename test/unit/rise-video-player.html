@@ -420,6 +420,41 @@
           } );
         } );
       } );
+
+      suite( "uptime", () => {
+        setup( () => {
+          sinon.spy( element, "_setUptimeError" );
+        } );
+
+        teardown( () => {
+          element._setUptimeError.restore();
+        } );
+
+        test( "should end uptime when a video error is encountered", () => {
+          const oldErrorFunction = element._playerInstance.error;
+
+          element._playerInstance.error = () => ( { code: 1234, message: undefined } );
+          element._onError();
+
+          assert.isOk( element._setUptimeError.calledOnceWithExactly( true ) );
+
+          element._playerInstance.error = oldErrorFunction;
+        } );
+
+        test( "should end uptime when the playlist plugin can't load", () => {
+          playlist = undefined;
+          element._initPlayer();
+          element._initPlaylist();
+
+          assert.isOk( element._setUptimeError.calledOnceWithExactly( true ) );
+        } );
+
+        test( "should reset uptime when a video plays", () => {
+          element._onPlay();
+
+          assert.isOk( element._setUptimeError.calledOnceWithExactly( false ) );
+        } );
+      } );
     </script>
   </body>
 </html>

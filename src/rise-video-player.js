@@ -182,8 +182,9 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _onPlay() {
-    // reset count since this event is evidence of successful play
+    // reset count and uptime since this event is evidence of successful play
     this._decodeRetryCount = 0;
+    this._setUptimeError( false );
 
     // playlist has been cleared since we started trying to play a video,
     // so we need to reset the player
@@ -227,6 +228,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     if ( !this._playerInstance.playlist ) {
       this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYLIST_PLUGIN_LOAD_ERROR, { message: "Playlist plugin did not load" } );
+      this._setUptimeError( true );
       return;
     }
 
