@@ -62,8 +62,7 @@
         <div id="sizing-container-16x9" style="width: 480px; height: 270px">
           <rise-video-player
             id="rise-video-player-16x9"
-            files='[{ "filePath": "16x9-0.5s-noaudio.mp4", "fileUrl": "./videos/16x9-0.5s-noaudio.mp4" }]'
-            skip-player-init="true">
+            files='[{ "filePath": "16x9-0.5s-noaudio.mp4", "fileUrl": "./videos/16x9-0.5s-noaudio.mp4" }]'>
           </rise-video-player>
         </div>
       </template>
@@ -200,12 +199,11 @@
       } );
 
       suite( "responsive", () => {
-        setup( () => {} );
+        setup( () => {
+          element = fixture("test-block-16x9").children[0];
+        } );
 
         test( "A video should fill its container",  done => {
-          element = fixture("test-block-16x9").children[0];
-
-          element._initPlayer();
           element._playerInstance.on( "playing", () => {
             const containerBounds = element.getBoundingClientRect();
             const videoBounds = element.$.video.getBoundingClientRect();
@@ -236,27 +234,27 @@
             done();
           } );
         } );
+      } );
 
-        suite( "play until done", () => {
-          setup (() => {
-            element = fixture("test-block");
+      suite( "play until done", () => {
+        setup (() => {
+          element = fixture("test-block");
+        } );
+
+        test( "report-done should be emitted when playlist finishes", done => {
+          sinon.spy( element, "dispatchEvent" );
+
+          let count = 0;
+          element._playerInstance.on( "play", () => {
+            count++;
+
+            if ( count > element.files.length ) {
+              assert.isOk( element.dispatchEvent.getCalls().some( call => call.args[0].type === "playlist-done" ) );
+              element.dispatchEvent.restore();
+              done();
+            }
           } );
 
-          test( "report-done should be emitted when playlist finishes", done => {
-            sinon.spy( element, "dispatchEvent" );
-
-            let count = 0;
-            element._playerInstance.on( "play", () => {
-              count++;
-
-              if ( count > element.files.length ) {
-                assert.isOk( element.dispatchEvent.getCalls().some( call => call.args[0].type === "playlist-done" ) );
-                element.dispatchEvent.restore();
-                done();
-              }
-            } );
-
-          } );
         } );
       } );
   </script>
