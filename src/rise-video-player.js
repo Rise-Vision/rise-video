@@ -256,6 +256,8 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       return;
     }
 
+    this._setVolume( this.volume );
+
     // set a new source
     if ( this.files ) {
       this._initPlaylist();
@@ -325,7 +327,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   _resetPlayer() {
     this._playerInstance.reset();
-    this._setVolume( this.volume );
   }
 }
 

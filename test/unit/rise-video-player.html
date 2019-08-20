@@ -260,9 +260,7 @@
         test( "player should be muted initially", () => {
           element._onPlayerInstanceReady();
 
-          assert.equal( element._playerInstance.volume.callCount, 1 );
           assert.deepEqual( element._playerInstance.volume.lastCall.args, [ 0 ] );
-          assert.equal( element._playerInstance.muted.callCount, 1 );
           assert.deepEqual( element._playerInstance.muted.lastCall.args, [ true ]  );
         } );
 
