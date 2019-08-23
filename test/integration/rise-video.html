@@ -134,6 +134,32 @@
             done();
           }, 500 );
         } );
+
+        test( "should call _done if file list includes single file and it does not exist", () => {
+          element.metadata = [ {file: "foo.mp4"} ];
+          sinon.spy( element, "_done" );
+          element._handleSingleFileError( {filePath: "foo.mp4", status: "NOEXIST" });
+
+          assert.isOk( element._done.calledOnce );
+
+          element._done.restore();
+        } );
+
+        test( "should call _done if file list includes two files and neither exists", () => {
+          sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( (file, handler) => {
+            handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
+          } );
+
+          element.metadata = [ {file: "foo.mp4"}, {file: "bar.mp4"} ];
+          sinon.spy( element, "_done" );
+          element._handleSingleFileError( {filePath: "foo.mp4", status: "NOEXIST" });
+          element._handleSingleFileError( {filePath: "bar.mp4", status: "NOEXIST" });
+
+          assert.isOk( element._done.calledOnce );
+
+          element._done.restore();
+          RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
+        } );
       } );
 
       suite( "presentation events", () => {
