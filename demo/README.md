@@ -49,7 +49,7 @@ python -m SimpleHTTPServer 8999
 
 Then go to http://localhost:8999/src/rise-video.html in Chrome browser.
 
-**Note:** __Because `rise-video` relies on RLS to download video files, it's not possible to test playback of videos locally. If you need to test video playback, refer to the Chrome browser instructions below.__
+**Note:** _Because `rise-video` relies on RLS to download video files, it's not possible to test playback of videos locally. If you need to test video playback, refer to the Chrome browser instructions below._
 
 ### Option b) Running the ChromeOS app in Chrome browser
 
