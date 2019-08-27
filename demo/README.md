@@ -49,6 +49,7 @@ python -m SimpleHTTPServer 8999
 
 Then go to http://localhost:8999/src/rise-video.html in Chrome browser.
 
+**Note:** _Because `rise-video` relies on RLS to download video files, it's not possible to test playback of videos locally. If you need to test video playback, refer to the Chrome browser instructions below._
 
 ### Option b) Running the ChromeOS app in Chrome browser
 
@@ -63,4 +64,4 @@ Then create a schedule that points to the published file, for example:
 Note that this is an HTTP URL, as ChromeOS Player currently requires that.
 
 Then configure the local environment as described in the
-[Help Article](https://help.risevision.com/hc/en-us/articles/360020390692-HTML-Templates-Local-Development-Setup-and-Installation-Process). It's not necessary to point the schedule to a local URL as it's described there, with the above URL for the schedule is enough.
+[Help Article](https://docs.google.com/document/d/1QbyrUlHjLzADYBxuKEkNglhVAPxP4f3WXVjbPQOXXvM). It's not necessary to point the schedule to a local URL as it's described there, with the above URL for the schedule is enough.
