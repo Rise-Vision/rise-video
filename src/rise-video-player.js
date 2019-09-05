@@ -84,6 +84,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     return "playlist-plugin-load-error";
   }
 
+  static get EVENT_VIDEO_STUCK() {
+    return "video-stuck";
+  }
+
   constructor() {
     super();
 
@@ -138,19 +142,19 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
       const currentTime = this._playerInstance.currentTime();
 
-      console.log( "watchdog:", currentTime, this._lastCurrentTime);
+      console.info( "watchdog:", currentTime, this._lastCurrentTime);
 
       if ( currentTime === this._lastCurrentTime ) {
-        console.log( "watchdog: video stuck" );
+        console.error( "watchdog: video stuck" );
 
         if ( this._unstickAttempts < this._maxUnstickAttempts ) {
-          console.log( "watchdog: attempting to unstick" );
+          console.info( "watchdog: attempting to unstick" );
           this._playerInstance.play();
           this._unstickAttempts ++;
         } else {
           this._onEnded();
-          console.log( "watchdog: max unstick attempts exceeded" );
-          // TODO: Log error
+          console.error( "watchdog: max unstick attempts exceeded" );
+          this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
         }
 
         this._lastCurrentTime = currentTime;
@@ -223,7 +227,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._setUptimeError( false );
 
     // reset watchdog
-    console.log( "watchdog: clear" );
+    console.info( "watchdog: clear" );
     this._unstickAttempts = 0;
     this._lastCurrentTime = null;
 

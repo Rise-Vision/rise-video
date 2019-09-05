@@ -79,6 +79,7 @@ The component may log the following:
 - **_video-reset_** ( info ): The component observed changes to either _files_ or _metadata_ attributes and performs a complete reset to use latest values.
 - **_player-error_** ( error ): An error is received from the VideoJS player.
 - **_playlist-plugin-load-error_** (error): The videojs-player plugin for the VideoJS player failed to load.
+- **_video-stuck_** (info): The video currentTime stopped advancing and could not be recovered.
 
 Additionally, because the component inherits from [WatchFilesMixin](https://github.com/Rise-Vision/rise-common-component/blob/master/src/watch-files-mixin.js) and [ValidFilesMixin](https://github.com/Rise-Vision/rise-common-component/blob/master/src/valid-files-mixin.js) in [rise-common-component](https://github.com/Rise-Vision/rise-common-component), it may log the following:
 
