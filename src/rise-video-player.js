@@ -10,7 +10,7 @@ import {} from "../dependencies/videojs-css";
 const MAX_DECODE_RETRIES = 5;
 const DECODE_RETRY_DELAY = 1000;
 const MAX_UNSTICK_ATTEMPTS = 5;
-const WATCHDOG_TIMER_DELAY = 5000;
+const WATCHDOG_TIMER_DELAY = 60000;
 
 export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   static get template() {
@@ -108,6 +108,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._onError = this._onError.bind(this);
     this._onPlay = this._onPlay.bind(this);
     this._onLoadedMetaData = this._onLoadedMetaData.bind(this);
+    this._watchdog = this._watchdog.bind(this);
+  }
+
+  disconnectedCallback() {
+    clearInterval( this._watchdogTimer );
   }
 
   ready() {
@@ -135,31 +140,34 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _configureWatchdog() {
-    this._watchdogTimer = setInterval( () => {
-      if ( !this._playerInstance.src() ) {
-        return;
+    clearInterval( this._watchdogTimer );
+    this._watchdogTimer = setInterval( this._watchdog, this._watchdogTimerDelay );
+  }
+
+  _watchdog() {
+    if ( !this._playerInstance.src() ) {
+      return;
+    }
+
+    const currentTime = this._playerInstance.currentTime();
+
+    console.info( "watchdog:", currentTime, this._lastCurrentTime);
+
+    if ( currentTime === this._lastCurrentTime ) {
+      console.warn( "watchdog: video stuck" );
+
+      if ( this._unstickAttempts < this._maxUnstickAttempts ) {
+        console.info( "watchdog: attempting to unstick" );
+        this._playerInstance.play();
+        this._unstickAttempts ++;
+      } else {
+        this._onEnded();
+        console.warn( "watchdog: max unstick attempts exceeded" );
+        this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
       }
+    }
 
-      const currentTime = this._playerInstance.currentTime();
-
-      console.info( "watchdog:", currentTime, this._lastCurrentTime);
-
-      if ( currentTime === this._lastCurrentTime ) {
-        console.error( "watchdog: video stuck" );
-
-        if ( this._unstickAttempts < this._maxUnstickAttempts ) {
-          console.info( "watchdog: attempting to unstick" );
-          this._playerInstance.play();
-          this._unstickAttempts ++;
-        } else {
-          this._onEnded();
-          console.error( "watchdog: max unstick attempts exceeded" );
-          this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
-        }
-
-        this._lastCurrentTime = currentTime;
-      }
-    }, this._watchdogTimerDelay );
+    this._lastCurrentTime = currentTime;
   }
 
   _removeLoadingSpinner() {

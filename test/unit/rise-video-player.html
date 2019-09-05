@@ -453,6 +453,24 @@
           assert.isOk( element._setUptimeError.calledOnceWithExactly( false ) );
         } );
       } );
+
+      suite( "watchdog timer", () => {
+        test( "should configure watchdog", () => {
+          element._configureWatchdog();
+
+          assert.strictEqual( typeof element._watchdogTimer, "number" );
+        } );
+
+        test( "should reset stuck video detection when video is played successfully", () => {
+          element._unstickAttempts = 999;
+          element._lastCurrentTime = 999;
+
+          element._onPlay();
+
+          assert.strictEqual( element._unstickAttempts, 0 );
+          assert.strictEqual( element._lastCurrentTime, null );
+        } );
+      } );
     </script>
   </body>
 </html>

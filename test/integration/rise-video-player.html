@@ -257,6 +257,78 @@
 
         } );
       } );
+
+      suite( "watchdog timer", () => {
+        setup( () => {
+          element = fixture("test-block-deferred");
+        } );
+
+        test( "should configure watchdog", done => {
+          sinon.spy( element, "_configureWatchdog" );
+          element._initPlayer();
+
+          element._playerInstance.on( "play", () => {
+            assert.equal( element._configureWatchdog.callCount, 1 );
+            element._configureWatchdog.restore();
+            done();
+          } );
+        } );
+
+        test( "should run watchdog at correct interval", () => {
+          const clock = sinon.useFakeTimers();
+          sinon.spy( element, "_watchdog" );
+
+          element._watchdogTimerDelay = 10;
+          element._initPlayer();
+          clock.tick( 110 );
+
+          assert.equal( element._watchdog.callCount, 10 );
+
+          element._watchdog.restore();
+          clock.restore();
+        } );
+
+        test( "should try to unstick a video the correct number of times", done => {
+          element._watchdogTimerDelay = 100;
+          element._initPlayer();
+
+          element._playerInstance.on( "playing", () => {
+            element._playerInstance.pause();
+            sinon.stub(element._playerInstance, "play").resolves();
+            element._configureWatchdog();
+
+            setTimeout( () => {
+              assert.equal( element._unstickAttempts, 3 );
+
+              done();
+            }, 400 );
+          } );
+        } );
+
+        test( "should skip to the next video and log an error after the failing to unstick", done => {
+          sinon.spy( element, "_log" );
+          element._watchdogTimerDelay = 100;
+          element._maxUnstickAttempts = 5;
+          element._initPlayer();
+
+          element._playerInstance.on( "playing", () => {
+            sinon.spy( element, "_onEnded" );
+            element._playerInstance.pause();
+            sinon.stub(element._playerInstance, "play").resolves();
+            element._configureWatchdog();
+
+            setTimeout( () => {
+              assert.strictEqual( element._unstickAttempts, 5 );
+              assert.strictEqual( element._onEnded.callCount, 1 );
+              assert.isOk( element._log.calledWithExactly( "warning", "video-stuck", { fileUrl: "./videos/test2-0.5s-noaudio.mp4" } ) );
+
+              element._onEnded.restore();
+              element._log.restore();
+              done();
+            }, 700 );
+          } );
+        } );
+      } );
   </script>
 
   </body>
