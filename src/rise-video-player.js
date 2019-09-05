@@ -9,6 +9,8 @@ import {} from "../dependencies/videojs-css";
 
 const MAX_DECODE_RETRIES = 5;
 const DECODE_RETRY_DELAY = 1000;
+const MAX_UNSTICK_ATTEMPTS = 5;
+const WATCHDOG_TIMER_DELAY = 5000;
 
 export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   static get template() {
@@ -90,6 +92,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._decodeRetryCount = 0,
     this._maxDecodeRetries = MAX_DECODE_RETRIES;
     this._decodeRetryDelay = DECODE_RETRY_DELAY;
+    this._watchdogTimer;
+    this._watchdogTimerDelay = WATCHDOG_TIMER_DELAY;
+    this._unstickAttempts = 0;
+    this._maxUnstickAttempts = MAX_UNSTICK_ATTEMPTS;
+    this._lastCurrentTime;
 
     // Preserve bindings to this in external callbacks
     this._onPlayerInstanceReady = this._onPlayerInstanceReady.bind(this);
@@ -111,6 +118,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   _onPlayerInstanceReady() {
     this._configureHandlers();
+    this._configureWatchdog();
     this._setVolume( this.volume );
     this._play();
   }
@@ -120,6 +128,34 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._playerInstance.on( "error", this._onError );
     this._playerInstance.on( "play", this._onPlay );
     this._playerInstance.on( "loadedmetadata", this._onLoadedMetaData );
+  }
+
+  _configureWatchdog() {
+    this._watchdogTimer = setInterval( () => {
+      if ( !this._playerInstance.src() ) {
+        return;
+      }
+
+      const currentTime = this._playerInstance.currentTime();
+
+      console.log( "watchdog:", currentTime, this._lastCurrentTime);
+
+      if ( currentTime === this._lastCurrentTime ) {
+        console.log( "watchdog: video stuck" );
+
+        if ( this._unstickAttempts < this._maxUnstickAttempts ) {
+          console.log( "watchdog: attempting to unstick" );
+          this._playerInstance.play();
+          this._unstickAttempts ++;
+        } else {
+          this._onEnded();
+          console.log( "watchdog: max unstick attempts exceeded" );
+          // TODO: Log error
+        }
+
+        this._lastCurrentTime = currentTime;
+      }
+    }, this._watchdogTimerDelay );
   }
 
   _removeLoadingSpinner() {
@@ -185,6 +221,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     // reset count and uptime since this event is evidence of successful play
     this._decodeRetryCount = 0;
     this._setUptimeError( false );
+
+    // reset watchdog
+    console.log( "watchdog: clear" );
+    this._unstickAttempts = 0;
+    this._lastCurrentTime = null;
 
     // playlist has been cleared since we started trying to play a video,
     // so we need to reset the player
