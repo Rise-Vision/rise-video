@@ -145,7 +145,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _watchdog() {
-    if ( !this._playerInstance.src() ) {
+    if ( !this._playerInstance.currentSrc() ) {
       return;
     }
 
@@ -158,6 +158,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
       if ( this._unstickAttempts < this._maxUnstickAttempts ) {
         console.info( "watchdog: attempting to unstick" );
+        this._playerInstance.pause();
         this._playerInstance.play();
         this._unstickAttempts ++;
       } else {
@@ -165,6 +166,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         console.warn( "watchdog: max unstick attempts exceeded" );
         this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
       }
+    } else {
+      console.info( "watchdog: reset unstick attempts" );
+      // Reset count, since currentTime has changed since we last checked
+      this._unstickAttempts = 0;
     }
 
     this._lastCurrentTime = currentTime;
@@ -177,6 +182,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _onEnded() {
+    // reset watchdog
+    this._lastCurrentTime = null;
+    this._unstickAttempts = 0;
+
     if ( this._isDone() ) {
       this.dispatchEvent( new CustomEvent( "playlist-done" ) );
       this._playFirst();
@@ -233,11 +242,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     // reset count and uptime since this event is evidence of successful play
     this._decodeRetryCount = 0;
     this._setUptimeError( false );
-
-    // reset watchdog
-    console.info( "watchdog: clear" );
-    this._unstickAttempts = 0;
-    this._lastCurrentTime = null;
 
     // playlist has been cleared since we started trying to play a video,
     // so we need to reset the player

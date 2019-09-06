@@ -41,12 +41,14 @@
       let playlist = sinon.spy( sinon.stub().returns( [] ) );
       const videojs = () => {
         const videojs = {
+          currentTime: sinon.spy( sinon.stub().returns( 1000 ) ),
           currentSrc: sinon.spy( sinon.stub().returns( "https://storage.googleapis.com/test1.mp4" ) ),
           exitFullscreen: sinon.spy(),
           getChild: sinon.spy(),
           error: sinon.spy(),
           muted: sinon.spy(),
           on: sinon.spy(),
+          pause: sinon.spy(),
           play: sinon.spy( sinon.stub().resolves() ),
           playlist: playlist,
           removeChild: sinon.spy(),
@@ -440,11 +442,15 @@
         } );
 
         test( "should end uptime when the playlist plugin can't load", () => {
+          const oldPlaylist = playlist;
+
           playlist = undefined;
           element._initPlayer();
           element._initPlaylist();
 
           assert.isOk( element._setUptimeError.calledOnceWithExactly( true ) );
+
+          playlist = oldPlaylist;
         } );
 
         test( "should reset uptime when a video plays", () => {
@@ -461,14 +467,23 @@
           assert.strictEqual( typeof element._watchdogTimer, "number" );
         } );
 
-        test( "should reset stuck video detection when video is played successfully", () => {
+        test( "should reset stuck video detection when video ends", () => {
           element._unstickAttempts = 999;
           element._lastCurrentTime = 999;
 
-          element._onPlay();
+          element._onEnded();
 
           assert.strictEqual( element._unstickAttempts, 0 );
           assert.strictEqual( element._lastCurrentTime, null );
+        } );
+
+        test( "should reset stuck video detection when video progresses", () => {
+          element._unstickAttempts = 999;
+          element._lastCurrentTime = 999;
+
+          element._watchdog();
+
+          assert.strictEqual( element._unstickAttempts, 0 );
         } );
       } );
     </script>
