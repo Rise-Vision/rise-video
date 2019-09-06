@@ -151,8 +151,6 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     const currentTime = this._playerInstance.currentTime();
 
-    console.info( "watchdog:", currentTime, this._lastCurrentTime);
-
     if ( currentTime === this._lastCurrentTime ) {
       console.warn( "watchdog: video stuck" );
 
@@ -166,7 +164,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         console.warn( "watchdog: max unstick attempts exceeded" );
         this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
       }
-    } else {
+    } else if ( this._unstickAttempts > 0 ) {
       console.info( "watchdog: reset unstick attempts" );
       // Reset count, since currentTime has changed since we last checked
       this._unstickAttempts = 0;
