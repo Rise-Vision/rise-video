@@ -313,19 +313,20 @@
 
           element._playerInstance.on( "playing", () => {
             sinon.spy( element, "_onEnded" );
+            element._lastCurrentTime = 0;
             element._playerInstance.pause();
             sinon.stub(element._playerInstance, "play").resolves();
             element._configureWatchdog();
 
             setTimeout( () => {
-              assert.strictEqual( element._unstickAttempts, 5 );
+              assert.strictEqual( element._unstickAttempts, 0 );
               assert.strictEqual( element._onEnded.callCount, 1 );
               assert.isOk( element._log.calledWithExactly( "warning", "video-stuck", { fileUrl: "./videos/test2-0.5s-noaudio.mp4" } ) );
 
               element._onEnded.restore();
               element._log.restore();
               done();
-            }, 700 );
+            }, 600 );
           } );
         } );
       } );
