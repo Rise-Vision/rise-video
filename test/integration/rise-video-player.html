@@ -319,14 +319,13 @@
             element._configureWatchdog();
 
             setTimeout( () => {
-              assert.strictEqual( element._unstickAttempts, 0 );
               assert.strictEqual( element._onEnded.callCount, 1 );
               assert.isOk( element._log.calledWithExactly( "warning", "video-stuck", { fileUrl: "./videos/test2-0.5s-noaudio.mp4" } ) );
 
               element._onEnded.restore();
               element._log.restore();
               done();
-            }, 600 );
+            }, 700 );
           } );
         } );
       } );
