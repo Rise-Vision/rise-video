@@ -9,6 +9,8 @@ import {} from "../dependencies/videojs-css";
 
 const MAX_DECODE_RETRIES = 5;
 const DECODE_RETRY_DELAY = 1000;
+const MAX_UNSTICK_ATTEMPTS = 5;
+const WATCHDOG_TIMER_DELAY = 60000;
 
 export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   static get template() {
@@ -82,6 +84,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     return "playlist-plugin-load-error";
   }
 
+  static get EVENT_VIDEO_STUCK() {
+    return "video-stuck";
+  }
+
   constructor() {
     super();
 
@@ -90,6 +96,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._decodeRetryCount = 0,
     this._maxDecodeRetries = MAX_DECODE_RETRIES;
     this._decodeRetryDelay = DECODE_RETRY_DELAY;
+    this._watchdogTimer;
+    this._watchdogTimerDelay = WATCHDOG_TIMER_DELAY;
+    this._unstickAttempts = 0;
+    this._maxUnstickAttempts = MAX_UNSTICK_ATTEMPTS;
+    this._lastCurrentTime;
 
     // Preserve bindings to this in external callbacks
     this._onPlayerInstanceReady = this._onPlayerInstanceReady.bind(this);
@@ -97,6 +108,11 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._onError = this._onError.bind(this);
     this._onPlay = this._onPlay.bind(this);
     this._onLoadedMetaData = this._onLoadedMetaData.bind(this);
+    this._watchdog = this._watchdog.bind(this);
+  }
+
+  disconnectedCallback() {
+    clearInterval( this._watchdogTimer );
   }
 
   ready() {
@@ -111,6 +127,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   _onPlayerInstanceReady() {
     this._configureHandlers();
+    this._configureWatchdog();
     this._setVolume( this.volume );
     this._play();
   }
@@ -122,6 +139,40 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     this._playerInstance.on( "loadedmetadata", this._onLoadedMetaData );
   }
 
+  _configureWatchdog() {
+    clearInterval( this._watchdogTimer );
+    this._watchdogTimer = setInterval( this._watchdog, this._watchdogTimerDelay );
+  }
+
+  _watchdog() {
+    if ( !this._playerInstance.currentSrc() ) {
+      return;
+    }
+
+    const currentTime = this._playerInstance.currentTime();
+
+    if ( currentTime === this._lastCurrentTime ) {
+      console.warn( "watchdog: video stuck" );
+
+      if ( this._unstickAttempts < this._maxUnstickAttempts ) {
+        console.info( "watchdog: attempting to unstick" );
+        this._playerInstance.pause();
+        this._playerInstance.play();
+        this._unstickAttempts ++;
+      } else {
+        this._onEnded();
+        console.warn( "watchdog: max unstick attempts exceeded" );
+        this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
+      }
+    } else if ( this._unstickAttempts > 0 ) {
+      console.info( "watchdog: reset unstick attempts" );
+      // Reset count, since currentTime has changed since we last checked
+      this._unstickAttempts = 0;
+    }
+
+    this._lastCurrentTime = currentTime;
+  }
+
   _removeLoadingSpinner() {
     const loadingSpinnerComponent = this._playerInstance.getChild( "loadingSpinner" );
 
@@ -129,6 +180,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _onEnded() {
+    // reset watchdog
+    this._lastCurrentTime = null;
+    this._unstickAttempts = 0;
+
     if ( this._isDone() ) {
       this.dispatchEvent( new CustomEvent( "playlist-done" ) );
       this._playFirst();
