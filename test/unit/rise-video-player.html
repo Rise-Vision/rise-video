@@ -302,6 +302,35 @@
           assert.equal( element._playerInstance.muted.callCount, 2 );
           assert.deepEqual( element._playerInstance.muted.lastCall.args, [ false ]  );
         } );
+
+        test( "throwing a NotAllowedError when calling play() should mute the video", done => {
+          const oldPlay = element._playerInstance.play;
+          element._playerInstance.play = sinon.stub().rejects("NotAllowedError");
+
+          element._playFirst();
+
+          setTimeout( () => {
+            assert.equal( element._playerInstance.muted.callCount, 1 );
+            assert.isOk( element._playerInstance.muted.calledWithExactly( true ) );
+
+            element._playerInstance.play = oldPlay;
+            done();
+          } );
+        } );
+
+        test( "throwing any other error when calling play() should not mute the video", done => {
+          const oldPlay = element._playerInstance.play;
+          element._playerInstance.play = sinon.stub().rejects("CustomError");
+
+          element._playFirst();
+
+          setTimeout( () => {
+            assert.strictEqual( element._playerInstance.muted.callCount, 0 );
+
+            element._playerInstance.play = oldPlay;
+            done();
+          } );
+        } );
       } );
 
       suite( "logging", () => {
