@@ -330,10 +330,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
     this._playerInstance.play().catch( e => {
       if ( e.name === "NotAllowedError" ) {
-        console.log( "Autoplay of videos with sound not allowed, muting" );
+        console.log( "Autoplay of videos with sound not allowed, muting video" );
         this._playerInstance.muted( true );
       }
-      this._playerInstance.play();
+      this._playerInstance.play().catch( () => {} );
     });
   }
 
