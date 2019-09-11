@@ -162,7 +162,10 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       } else {
         this._onEnded();
         console.warn( "watchdog: max unstick attempts exceeded" );
-        this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
+        this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, {
+          filePath: this._getFilePathFromSrc( this._playerInstance.currentSrc() ),
+          currentSrc: this._playerInstance.currentSrc()
+        } );
       }
     } else if ( this._unstickAttempts > 0 ) {
       console.info( "watchdog: reset unstick attempts" );
