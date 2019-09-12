@@ -322,8 +322,12 @@
               assert.strictEqual( element._onEnded.callCount, 1 );
               debugger;
               assert.isOk( element._log.calledWithExactly( "warning", "video-stuck", {
-                filePath: "test2-0.5s-noaudio.mp4",
-                currentSrc: "./videos/test2-0.5s-noaudio.mp4"
+                storage: {
+                  local_url: "./videos/test2-0.5s-noaudio.mp4",
+                  file_path: "test2-0.5s-noaudio.mp4",
+                  file_form: "mp4",
+                  configuration: "storage file"
+                }
               } ) );
 
               element._onEnded.restore();

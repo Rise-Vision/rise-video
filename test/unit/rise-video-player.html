@@ -382,10 +382,14 @@
           assert.equal( element._log.lastCall.args[ 0 ], "error" );
           assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
           assert.deepEqual( element._log.lastCall.args[ 2 ], {
-            currentSrc: "https://storage.googleapis.com/test1.mp4",
             errorMessage: "Sorry, there was a problem playing the video.",
-            filePath: "test1.mp4",
-            type: "MEDIA_ERR_UNKNOWN"
+            type: "MEDIA_ERR_UNKNOWN",
+            storage: {
+              local_url: "https://storage.googleapis.com/test1.mp4",
+              file_path: "test1.mp4",
+              file_form: "mp4",
+              configuration: "storage file"
+            }
           } );
 
           element._playerInstance.error = () => ( { code: 0, message: "There was an error" } );

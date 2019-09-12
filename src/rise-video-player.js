@@ -163,8 +163,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         this._onEnded();
         console.warn( "watchdog: max unstick attempts exceeded" );
         this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, {
-          filePath: this._getFilePathFromSrc( this._playerInstance.currentSrc() ),
-          currentSrc: this._playerInstance.currentSrc()
+          storage: this._getCurrentStorageData()
         } );
       }
     } else if ( this._unstickAttempts > 0 ) {
@@ -229,8 +228,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       const data = {
         type: errorTypes[ error.code ] || "MEDIA_ERR_UNKNOWN",
         errorMessage: error.message || "Sorry, there was a problem playing the video.",
-        currentSrc: this._playerInstance.currentSrc(),
-        filePath: this._getFilePathFromSrc( this._playerInstance.currentSrc() )
+        storage: this._getCurrentStorageData()
       };
 
       this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
@@ -346,6 +344,13 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
       return file ? file.filePath : undefined;
     }
+  }
+
+  _getCurrentStorageData() {
+    return super._getStorageData(
+      this._getFilePathFromSrc( this._playerInstance.currentSrc() ),
+      this._playerInstance.currentSrc()
+    );
   }
 
   _filesChanged() {
