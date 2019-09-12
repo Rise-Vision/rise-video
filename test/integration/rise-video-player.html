@@ -320,8 +320,7 @@
 
             setTimeout( () => {
               assert.strictEqual( element._onEnded.callCount, 1 );
-              debugger;
-              assert.isOk( element._log.calledWithExactly( "warning", "video-stuck", {
+              assert.isOk( element._log.calledWithExactly( "warning", "video-stuck", null, {
                 storage: {
                   local_url: "./videos/test2-0.5s-noaudio.mp4",
                   file_path: "test2-0.5s-noaudio.mp4",
