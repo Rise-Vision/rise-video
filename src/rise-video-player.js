@@ -162,7 +162,9 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       } else {
         this._onEnded();
         console.warn( "watchdog: max unstick attempts exceeded" );
-        this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, { fileUrl: this._playerInstance.currentSrc() } );
+        this._log( RiseVideoPlayer.LOG_TYPE_WARNING, RiseVideoPlayer.EVENT_VIDEO_STUCK, null, {
+          storage: this._getCurrentStorageData()
+        } );
       }
     } else if ( this._unstickAttempts > 0 ) {
       console.info( "watchdog: reset unstick attempts" );
@@ -225,12 +227,12 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       ];
       const data = {
         type: errorTypes[ error.code ] || "MEDIA_ERR_UNKNOWN",
-        errorMessage: error.message || "Sorry, there was a problem playing the video.",
-        currentSrc: this._playerInstance.currentSrc(),
-        filePath: this._getFilePathFromSrc( this._playerInstance.currentSrc() )
+        errorMessage: error.message || "Sorry, there was a problem playing the video."
       };
 
-      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data );
+      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data, {
+        storage: this._getCurrentStorageData()
+      } );
       this._onEnded(); // skip to the next video
       this._setUptimeError( true );
     }
@@ -343,6 +345,13 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
       return file ? file.filePath : undefined;
     }
+  }
+
+  _getCurrentStorageData() {
+    return super.getStorageData(
+      this._getFilePathFromSrc( this._playerInstance.currentSrc() ),
+      this._playerInstance.currentSrc()
+    );
   }
 
   _filesChanged() {
