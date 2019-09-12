@@ -347,7 +347,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
   }
 
   _getCurrentStorageData() {
-    return super._getStorageData(
+    return super.getStorageData(
       this._getFilePathFromSrc( this._playerInstance.currentSrc() ),
       this._playerInstance.currentSrc()
     );
