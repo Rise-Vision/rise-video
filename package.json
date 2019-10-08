@@ -37,6 +37,7 @@
     "chai": "^4.2.0",
     "concat": "^1.0.3",
     "eslint": "^5.16.0",
+    "eslint-utils": ">=1.4.1",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "mocha": "^5.2.0",
