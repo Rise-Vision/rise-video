@@ -16,6 +16,11 @@ There is no need to configure listeners if the component runs as editable ( defa
 ### Example
 
 ```
+  <head>
+    ...
+    <script src="https://widgets.risevision.com/stable/components/rise-video/1/rise-video.js"></script>
+    ...
+  </head>
   <body>
     <div id="video-sample-container">
       <rise-video
