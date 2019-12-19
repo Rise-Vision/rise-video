@@ -541,6 +541,84 @@
           assert.isOk( element._setUptimeError.calledOnceWithExactly( false ) );
         } );
       } );
+
+      suite( "_filePathIsRendered", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
+        test( "should find by filepath", () => {
+          element._filesToRenderList = [
+            { filePath: "a.txt" },
+            { filePath: "b.txt" },
+            { filePath: "c.txt" }
+          ];
+
+          assert.isOk( element._filePathIsRendered( "b.txt" ) );
+        } );
+
+        test( "should not find if not in list", () => {
+          element._filesToRenderList = [
+            { filePath: "a.txt" },
+            { filePath: "b.txt" },
+            { filePath: "c.txt" }
+          ];
+
+          assert.isNotOk( element._filePathIsRendered( "d.txt" ) );
+        } );
+      });
+
+      suite( "_configureShowingVideos", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
+        test( "should find by filepath", () => {
+          element._presentationStarted = true;
+          element.managedFiles = [
+            { filePath: "a.txt" },
+            { filePath: "b.txt" },
+            { filePath: "c.txt" }
+          ];
+          element._validFiles = [ "a.txt", "c.txt" ];
+
+          const expectedFiles = [
+            { filePath: "a.txt" },
+            { filePath: "c.txt" }
+          ];
+
+          element._configureShowingVideos();
+
+          assert.deepEqual( element._filesToRenderList, expectedFiles );
+        } );
+
+        test( "should not configure showing videos if presentation has not started", () => {
+          element._presentationStarted = false;
+          const currentList = element._filesToRenderList;
+
+          element._configureShowingVideos();
+
+          assert.equal( element._filesToRenderList, currentList );
+        } );
+      } );
+
+      suite( "watchedFileDeletedCallback", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
+        test( "should not configure showing videos if presentation has not started", () => {
+          element._filesToRenderList = [
+            { filePath: "a.txt" }
+          ];
+          element._filePathIsRendered = () => true;
+
+          element.watchedFileDeletedCallback({ filePath: "a.txt" });
+
+          assert.deepEqual( element._filesToRenderList, [] );
+        } );
+      } );
+
     </script>
   </body>
 </html>

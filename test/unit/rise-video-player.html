@@ -189,6 +189,14 @@
 
           assert.equal( element._playerInstance.reset.callCount, 1 );
         } );
+
+        test( "player should be reset when there are no files", () => {
+          element.files = [];
+          element._resetPlayer = sinon.spy();
+          element._play();
+
+          assert.equal( element._resetPlayer.callCount, 1 );
+        } );
       } );
 
       suite( "_initPlaylist", () => {
@@ -520,7 +528,39 @@
 
           assert.strictEqual( element._unstickAttempts, 0 );
         } );
+
+        test( "should exit watchog if there's no currentSrc", () => {
+          element._playerInstance = {
+            currentSrc: () => null,
+            currentTime: sinon.spy()
+          };
+
+          element._watchdog();
+
+          assert.strictEqual( element._playerInstance.currentTime.callCount, 0 );
+        } );
       } );
+
+      suite( "_muteVideo", () => {
+        test( "should mute video", () => {
+          element._playerInstance = {
+            volume: sinon.spy(),
+            muted: sinon.spy()
+          };
+
+          element._muteVideo();
+
+          assert.isTrue( element._playerInstance.volume.calledOnce );
+          assert.isTrue( element._playerInstance.muted.calledOnce );
+        } );
+
+        test( "should do nothing if there is no player instance", () => {
+          element._playerInstance = null;
+
+          element._muteVideo();
+        } );
+      } );
+
     </script>
   </body>
 </html>
