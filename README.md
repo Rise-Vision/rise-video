@@ -1,4 +1,4 @@
-# Video Web Component [![CircleCI](https://circleci.com/gh/Rise-Vision/rise-video/tree/master.svg?style=svg)](https://circleci.com/gh/Rise-Vision/rise-video/tree/master)
+# Video Web Component [![CircleCI](https://circleci.com/gh/Rise-Vision/rise-video/tree/master.svg?style=svg)](https://circleci.com/gh/Rise-Vision/rise-video/tree/master) [![Coverage Status](https://coveralls.io/repos/github/Rise-Vision/rise-video/badge.svg?branch=master)](https://coveralls.io/github/Rise-Vision/rise-video?branch=master)
 
 ## Introduction
 
@@ -125,6 +125,12 @@ Execute the following command in Terminal to run tests:
 
 ```
 npm run test
+```
+
+In case `polymer-cli` was installed globally, the `wct-istanbul` package will also need to be installed globally:
+
+```
+npm install -g wct-istanbul
 ```
 
 #### Local Server
