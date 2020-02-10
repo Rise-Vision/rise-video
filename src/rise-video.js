@@ -84,10 +84,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     ]
   }
 
-  static get STORAGE_PREFIX() {
-    return "https://storage.googleapis.com/";
-  }
-
   static get EVENT_VIDEO_RESET() {
     return "video-reset";
   }
