@@ -7,7 +7,7 @@
     "build": "polymer build && ./node_modules/rise-common-component/scripts/extract-source.sh rise-video",
     "postbuild": "gulp",
     "pretest": "eslint . && npm run build",
-    "test": "polymer test --root ./ --config-file ./node_modules/rise-common-component/wct.conf.js"
+    "test": "polymer test"
   },
   "repository": {
     "type": "git",
@@ -37,12 +37,14 @@
     "@polymer/test-fixture": "^4.0.2",
     "chai": "^4.2.0",
     "concat": "^1.0.3",
+    "coveralls": "3.0.6",
     "eslint": "^5.16.0",
     "eslint-utils": ">=1.4.1",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "mocha": "^5.2.0",
     "sinon": "^7.3.2",
+    "wct-istanbul": "^0.14.3",
     "wct-mocha": "^1.0.0"
   }
 }
