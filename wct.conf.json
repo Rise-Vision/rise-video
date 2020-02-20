@@ -10,6 +10,23 @@
           "headless"
         ]
       }
+    },
+    "istanbul": {
+      "reporters": [ "text", "text-summary", "lcov" ],
+      "include": [
+        "**/src/**/*.js"
+      ],
+      "exclude": [
+        "**/test/**"
+      ],
+      "thresholds": {
+        "global": {
+          "branches": 90,
+          "lines": 95,
+          "functions": 95,
+          "statements": 95
+        }
+      }
     }
   }
 }
