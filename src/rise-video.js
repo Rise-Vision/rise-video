@@ -122,6 +122,11 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._reset();
   }
 
+  _handleStartForPreview() {
+    // TODO: continue progress here
+    console.log("_handleStartForPreview()", this._validFiles);
+  }
+
   _handleStart() {
     if ( this._initialStart ) {
       this._initialStart = false;
@@ -135,11 +140,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _start() {
     let filesList;
 
-    if ( this._isPreview ) {
-      return;
-    }
-
-    this.stopWatch();
+    super.stopWatch();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
 
@@ -149,7 +150,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
       filesList = this._getDefaultFiles();
     }
 
-    const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
+    const { validFiles } = super.validateFiles( filesList, VALID_FILE_TYPES );
 
     if ( filesList && filesList.length && ( !validFiles || !validFiles.length ) ) {
       // there are some files, but all formats are invalid
@@ -158,6 +159,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
+
+      if ( this._isPreview ) {
+        return this._handleStartForPreview();
+      }
 
       this.startWatch( validFiles );
 
