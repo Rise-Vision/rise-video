@@ -140,7 +140,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   _start() {
     let filesList;
 
-    super.stopWatch();
+    this.stopWatch();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
 
@@ -150,7 +150,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
       filesList = this._getDefaultFiles();
     }
 
-    const { validFiles } = super.validateFiles( filesList, VALID_FILE_TYPES );
+    const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
 
     if ( filesList && filesList.length && ( !validFiles || !validFiles.length ) ) {
       // there are some files, but all formats are invalid
