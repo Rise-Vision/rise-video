@@ -273,18 +273,6 @@
         } );
       } );
 
-      suite( "non-preview mode", () => {
-        setup (() => {
-          element = fixture( "test-block" );
-        } );
-
-        test( "should hide the preview placeholder if not in preview mode", () => {
-          const style = window.getComputedStyle( element.$.previewPlaceholder );
-
-          assert.equal( style.display, "none" );
-        } );
-      } );
-
       suite( "preview mode", () => {
         let oldIsPreview;
 
@@ -311,11 +299,6 @@
           assert.deepEqual( element._validFiles, [] );
         } );
 
-        test( "should show the preview placeholder if in preview mode", () => {
-          const style = window.getComputedStyle( element.$.previewPlaceholder );
-
-          assert.equal( style.display, "block" );
-        } );
       } );
 
       suite( "get default files", () => {
