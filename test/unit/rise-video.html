@@ -295,8 +295,14 @@
           assert.equal( RisePlayerConfiguration.isPreview.callCount, 1 );
         } );
 
-        test( "should not initialize if in preview mode", () => {
-          assert.deepEqual( element._validFiles, [] );
+        test( "should initialize valid files and call _handleStartForPreview()", () => {
+          sinon.spy(element, "_handleStartForPreview")
+          element._start();
+
+          assert.deepEqual( element._validFiles, ["test1.mp4", "test3.webm"] );
+          assert.isTrue(element._handleStartForPreview.called);
+
+          element._handleStartForPreview.restore();
         } );
 
       } );
