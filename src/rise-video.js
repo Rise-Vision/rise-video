@@ -123,11 +123,11 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _handleStartForPreview() {
-    this._validFiles.forEach( file => {
-      const status = this._previewStatusFor( file );
-
-      console.log("preview status: ", file, status);
-    });
+    this._validFiles.forEach( file => this.handleFileStatusUpdated({
+      filePath: file,
+      fileUrl: this._getFileUrl( file ),
+      status: this._previewStatusFor( file )
+    }));
   }
 
   _handleStart() {
@@ -138,6 +138,20 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
 
       this._start();
     }
+  }
+
+  _getFileUrl( file ) {
+    return RiseVideo.STORAGE_PREFIX + this._encodePath( file );
+  }
+
+  _encodePath( filePath ) {
+    // encode each element of the path separately
+
+    let encodedPath = filePath.split("/")
+      .map( pathElement => encodeURIComponent( pathElement ))
+      .join("/");
+
+    return encodedPath;
   }
 
   _start() {
