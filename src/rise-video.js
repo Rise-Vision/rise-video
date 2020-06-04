@@ -123,8 +123,11 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   _handleStartForPreview() {
-    // TODO: continue progress here
-    console.log("_handleStartForPreview()", this._validFiles);
+    this._validFiles.forEach( file => {
+      const status = this._previewStatusFor( file );
+
+      console.log("preview status: ", file, status);
+    });
   }
 
   _handleStart() {
@@ -182,6 +185,20 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this.stopWatch();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
+  }
+
+  _metadataEntryFor( file ) {
+    return this.metadata.find( current => current.file === file );
+  }
+
+  _previewStatusFor( file ) {
+    if ( !this._hasMetadata()) {
+      return "current";
+    }
+
+    const entry = this._metadataEntryFor( file );
+
+    return entry && entry.exists ? "current" : "deleted";
   }
 
   _configureShowingVideos() {
