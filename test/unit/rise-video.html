@@ -609,6 +609,10 @@
       } );
 
       suite( "_previewStatusFor", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
         test( "should get current status if there is no metadata", () => {
 
           const status = element._previewStatusFor( "risemedialibrary-abc123/test1.webm" );
@@ -664,6 +668,68 @@
         });
 
       });
+
+      suite( "_getFileUrl", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        } );
+
+        test( "should encode file path", () => {
+          let filePath = "risemedialibrary-abc123/testing/Ü-+ test%20encoding ([!@?,#$])=1+2-A&%.webm";
+          let fileUrl = element._getFileUrl( filePath );
+
+          assert.isTrue(fileUrl.indexOf("/risemedialibrary-abc123/") > 0, "forward slash in file path is not encoded" );
+        } );
+
+      } );
+
+      suite( "_handleStartForPreview", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+          sinon.stub(element.__proto__.__proto__, "handleFileStatusUpdated");
+        });
+
+        teardown( () => {
+          element.metadata = null;
+
+          element.handleFileStatusUpdated.restore();
+        } );
+
+        test( "should call handleFileStatusUpdated with correct data", () => {
+          element._validFiles = [ "risemedialibrary-abc123/test.webm" ];
+          element._handleStartForPreview();
+
+          assert.isTrue( element.handleFileStatusUpdated.calledWith({
+            filePath: "risemedialibrary-abc123/test.webm",
+            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test.webm",
+            status: "current"
+          } ));
+        } );
+
+        test( "should call handleFileStatusUpdated for each file", () => {
+          element._validFiles = [ "risemedialibrary-abc123/test1.webm", "risemedialibrary-abc123/test2.webm", "risemedialibrary-abc123/test3.webm" ];
+          element._handleStartForPreview();
+
+          assert.deepEqual( element.__proto__.__proto__.handleFileStatusUpdated.args[0][0], {
+            filePath: "risemedialibrary-abc123/test1.webm",
+            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test1.webm",
+            status: "current"
+          } );
+
+          assert.deepEqual( element.__proto__.__proto__.handleFileStatusUpdated.args[1][0], {
+            filePath: "risemedialibrary-abc123/test2.webm",
+            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test2.webm",
+            status: "current"
+          } );
+
+          assert.deepEqual( element.__proto__.__proto__.handleFileStatusUpdated.args[2][0], {
+            filePath: "risemedialibrary-abc123/test3.webm",
+            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test3.webm",
+            status: "current"
+          } );
+        } );
+
+      } );
 
     </script>
   </body>
