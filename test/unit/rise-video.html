@@ -608,6 +608,63 @@
         } );
       } );
 
+      suite( "_previewStatusFor", () => {
+        test( "should get current status if there is no metadata", () => {
+
+          const status = element._previewStatusFor( "risemedialibrary-abc123/test1.webm" );
+
+          assert.equal( status, "current" );
+        });
+
+        test( "should get current status if metadata says that file exists", () => {
+          element.metadata = [{
+            "file": "risemedialibrary-abc123/test1.webm",
+            "exists": true
+          }, {
+            "file": "risemedialibrary-abc123/test2.webm",
+            "exists": true
+          }];
+
+          const status = element._previewStatusFor( "risemedialibrary-abc123/test2.webm" );
+
+          assert.equal( status, "current" );
+        });
+
+        test( "should get deleted status if metadata says that file doesn't exist", () => {
+          element.metadata = [{
+            "file": "risemedialibrary-abc123/test1.webm",
+            "exists": true
+          }, {
+            "file": "risemedialibrary-abc123/test2.webm",
+            "exists": false
+          }];
+
+          const status = element._previewStatusFor( "risemedialibrary-abc123/test2.webm" );
+
+          assert.equal( status, "deleted" );
+        });
+
+        test( "should get deleted status if metadata is not empty but does not contain the file", () => {
+          element.metadata = [{
+            "file": "risemedialibrary-abc123/test1.webm",
+            "exists": true
+          }];
+
+          const status = element._previewStatusFor( "risemedialibrary-abc123/test2.webm" );
+
+          assert.equal( status, "deleted" );
+        } );
+
+        test( "should get deleted status if metadata is empty", () => {
+          element.metadata = [];
+
+          const status = element._previewStatusFor( "risemedialibrary-abc123/test1.webm" );
+
+          assert.equal( status, "deleted" );
+        });
+
+      });
+
     </script>
   </body>
 </html>
