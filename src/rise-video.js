@@ -4,12 +4,15 @@ import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin";
 import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
+import { StoreFilesMixin } from "rise-common-component/src/store-files-mixin";
 import { version } from "./rise-video-version.js";
 import {} from "./rise-video-player";
 
 export const VALID_FILE_TYPES = [ "mp4", "webm" ];
 export const MAXIMUM_TIME_FOR_FIRST_DOWNLOAD = 15 * 1000;
 export const NO_FILES_DONE_DELAY = 10 * 1000;
+
+const base = StoreFilesMixin(RiseElement);
 
 // If running in Viewer, detect whether the template has been initially hidden
 // or not so we can prevent playback.
@@ -26,7 +29,7 @@ try {
   console.log( "There was a problem accessing the parent document" );
 }
 
-export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
+export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) ) {
   static get template() {
     return html`
       <style>
