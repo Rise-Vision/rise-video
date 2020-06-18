@@ -29,6 +29,9 @@
           watchSingleFile: (file, handler) => {
             handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
           }
+        },
+        Helpers: {
+          isEditorPreview: () => false
         }
       };
 
@@ -273,6 +276,28 @@
         } );
       } );
 
+      suite( "editor preview mode", () => {
+        setup( () => {
+          sinon.stub(RisePlayerConfiguration.Helpers, "isEditorPreview").returns(true);
+          element = fixture( "test-block" );
+        } );
+
+        teardown( () => {
+          RisePlayerConfiguration.Helpers.isEditorPreview.restore();
+        } );
+
+        test( "should not initialize if in editor preview mode", () => {
+          assert.deepEqual( element._validFiles, [] );
+        } );
+
+        test( "should show the preview placeholder if in editor preview mode", () => {
+          const style = window.getComputedStyle( element.$.previewPlaceholder );
+
+          assert.equal( style.display, "block" );
+        } );
+
+      } );
+
       suite( "preview mode", () => {
         let oldIsPreview;
 
@@ -293,6 +318,12 @@
 
           assert.strictEqual( isPreview, true );
           assert.equal( RisePlayerConfiguration.isPreview.callCount, 1 );
+        } );
+
+        test( "should hide the preview placeholder if not in editor preview mode", () => {
+          const style = window.getComputedStyle( element.$.previewPlaceholder );
+
+          assert.equal( style.display, "none" );
         } );
 
         test( "should initialize valid files and call _handleStartForPreview()", () => {
