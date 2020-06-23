@@ -337,7 +337,7 @@
         } );
 
         test( "should initialize valid files and call _handleStartForPreview()", () => {
-          sinon.spy(element, "_handleStartForPreview")
+          sinon.stub(element, "_handleStartForPreview")
           element._start();
 
           assert.deepEqual( element._validFiles, ["test1.mp4", "test3.webm"] );
@@ -775,6 +775,172 @@
           } );
         } );
 
+      } );
+
+      suite( "_fetchVideosForPreview", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+
+          sinon.stub(element, "_fetchFileForPreview").callsFake((file) => {
+            return Promise.resolve(`blob:${file.fileUrl}`);
+          });
+        });
+
+        teardown( () => {
+          element._fetchFileForPreview.restore();
+        } );
+
+        test( "should sequentially add files to _filesToRenderList array and complete with the array fully populated", (done) => {
+          const files = [
+            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
+            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
+            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
+          ];
+
+          element._fetchVideosForPreview( files )
+            .then( () => {
+              assert.isTrue(element._fetchingVideosForPreview);
+              assert.equal(element._fetchFileForPreview.callCount, 3);
+              assert.deepEqual(element._filesToRenderList, [
+                { filePath: "a.webm", fileUrl: "blob:https://test.com/a.webm" },
+                { filePath: "b.webm", fileUrl: "blob:https://test.com/b.webm" },
+                { filePath: "c.webm", fileUrl: "blob:https://test.com/c.webm" }
+              ]);
+              done();
+            })
+            .catch(err => {
+              console.log("shouldn't be here", err);
+              assert.fail();
+              done();
+            });
+        } );
+
+        test( "should not add files to _filesToRenderList array if abort flag is on", (done) => {
+          const files = [
+            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
+            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
+            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
+          ];
+
+          element._abortFetchingVideosForPreview = true;
+          element._fetchVideosForPreview( files )
+          .then( () => {
+            assert.isFalse(element._fetchFileForPreview.called);
+            assert.deepEqual(element._filesToRenderList, []);
+
+            done();
+          } )
+            .catch(err => {
+              console.log("shouldn't be here", err);
+              assert.fail();
+              done();
+            });
+        } );
+
+        test( "should not add file to _filesToRenderList array if abort flag turned on while processing a fetch", (done) => {
+          const files = [
+            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
+            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
+            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
+          ];
+
+          element._fetchFileForPreview.restore();
+          sinon.stub(element, "_fetchFileForPreview").callsFake((file) => {
+            if ( element._fetchFileForPreview.callCount > 1 ) {
+              element._abortFetchingVideosForPreview = true;
+            }
+
+            return Promise.resolve(`blob:${file.fileUrl}`);
+          });
+
+          element._fetchVideosForPreview( files )
+            .then( () => {
+              assert.equal(element._fetchFileForPreview.callCount, 2);
+              assert.deepEqual(element._filesToRenderList, [
+                { filePath: "a.webm", fileUrl: "blob:https://test.com/a.webm" }
+              ]);
+
+              done();
+            } )
+            .catch(err => {
+              console.log("shouldn't be here", err);
+              assert.fail();
+              done();
+            });
+        } );
+      } );
+
+      suite( "_configureShowingVideosForPreview", () => {
+        setup( () => {
+
+          element = fixture( "test-block" );
+
+          sinon.stub(element, "_fetchVideosForPreview").callsFake(() => {
+            element._fetchingVideosForPreview = true;
+
+            return Promise.resolve();
+          });
+        });
+
+        teardown( () => {
+          element._fetchVideosForPreview.restore();
+
+        } );
+
+        test( "should not execute if presentation has not started", () => {
+          element._presentationStarted = false;
+          element._configureShowingVideosForPreview();
+
+          assert.isFalse(element._fetchVideosForPreview.called);
+        } );
+
+        test( "should recursively wait to execute until previous sequential fetch is complete based on flag", () => {
+          let clock = sinon.useFakeTimers();
+
+          sinon.spy(element, "_configureShowingVideosForPreview");
+
+          element._presentationStarted = true;
+          element._fetchingVideosForPreview = true;
+          element._configureShowingVideosForPreview();
+
+          clock.tick(500);
+          assert.equal(element._configureShowingVideosForPreview.callCount, 2);
+          assert.isFalse(element._fetchVideosForPreview.called);
+
+          clock.tick(500);
+          assert.equal(element._configureShowingVideosForPreview.callCount, 3);
+          assert.isFalse(element._fetchVideosForPreview.called);
+
+          // mock previous sequential fetching completed
+          element._fetchingVideosForPreview = false;
+
+          clock.tick(500);
+          assert.equal(element._configureShowingVideosForPreview.callCount, 4);
+          assert.isTrue(element._fetchVideosForPreview.called);
+
+          clock.restore();
+        } );
+
+        test( "should call _fetchVideosForPreview with managed files and set flags when complete", (done) => {
+          const files = [
+            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
+            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
+            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
+          ];
+
+          element._presentationStarted = true;
+          element.managedFiles = files;
+          element._configureShowingVideosForPreview();
+
+          setTimeout(() => {
+            assert.isTrue(element._fetchVideosForPreview.calledWith(files));
+            assert.isFalse(element._fetchingVideosForPreview);
+            assert.isFalse(element._abortFetchingVideosForPreview);
+
+            done()
+          }, 200);
+
+        } );
       } );
 
     </script>
