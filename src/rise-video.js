@@ -11,7 +11,7 @@ import {} from "./rise-video-player";
 export const VALID_FILE_TYPES = [ "mp4", "webm" ];
 export const MAXIMUM_TIME_FOR_FIRST_DOWNLOAD = 15 * 1000;
 export const NO_FILES_DONE_DELAY = 10 * 1000;
-export const RETRY_LOADING_VIDEOS_DELAY = 500;
+export const RETRY_FETCHING_VIDEOS_DELAY = 500;
 
 const base = StoreFilesMixin(RiseElement);
 
@@ -103,10 +103,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
 
     this._initialStart = true;
     this._filesToRenderList = [];
-    this._loadingVideosForPreview = false;
-    this._abortLoadingVideosForPreview = false;
-    this._retryLoadingVideosTimer = null;
-    this._filesToRenderLoaded = [];
+    this._fetchingVideosForPreview = false;
+    this._abortFetchingVideosForPreview = false;
+    this._retryFetchingVideosTimer = null;
+    this._filesToRenderFetched = [];
     this._validFiles = [];
     this._noFilesDoneTimer = null
     this._firstDownloadTimer = null;
@@ -190,10 +190,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     }
 
     this.stopWatch();
-    this._abortLoadingForPreview();
+    this._abortFetchingForPreview();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
-    this._clearRetryLoadingVideosTimer();
+    this._clearRetryFetchingVideosTimer();
 
     if ( this._hasMetadata() ) {
       filesList = this._getFilesFromMetadata();
@@ -230,12 +230,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
   _stop() {
     this._validFiles = [];
     this._filesToRenderList = [];
-    this._filesToRenderLoaded = [];
-    this._abortLoadingForPreview();
+    this._filesToRenderFetched = [];
+    this._abortFetchingForPreview();
     this.stopWatch();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
-    this._clearRetryLoadingVideosTimer();
+    this._clearRetryFetchingVideosTimer();
   }
 
   _metadataEntryFor( file ) {
@@ -262,7 +262,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
       .filter( f => this._validFiles.includes( f.filePath ) );
   }
 
-  _getFileForPreview( file ) {
+  _fetchFileForPreview( file ) {
     // TODO: Use StoreFilesMixin to fetch and cache files. Waiting until StoreFilesMixin is in a reliable stable state
 
     // temporarily emulating downloading/caching with a timeout as well as return the direct storage url instead of object url for now
@@ -273,34 +273,34 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     });
   }
 
-  _abortLoadingForPreview() {
+  _abortFetchingForPreview() {
     // in case sequential loading is in process, make sure to set abort flag
-    if ( this._isPreview && this._loadingVideosForPreview ) {
-      this._abortLoadingVideosForPreview = true;
+    if ( this._isPreview && this._fetchingVideosForPreview ) {
+      this._abortFetchingVideosForPreview = true;
     }
   }
 
-  _loadVideosForPreview( files ) {
-    this._loadingVideosForPreview = true;
+  _fetchVideosForPreview( files ) {
+    this._fetchingVideosForPreview = true;
 
     return files.reduce( (promise, file) => {
       return promise.then(() => {
-        if ( this._abortLoadingVideosForPreview ) {
+        if ( this._abortFetchingVideosForPreview ) {
           // don't process this file if an abort is flagged
           return;
         }
 
-        return this._getFileForPreview( file ).then( (objectUrl) => {
+        return this._fetchFileForPreview( file ).then( (objectUrl) => {
           // don't add this to render list if an abort is flagged
-          if ( this._abortLoadingVideosForPreview ) {
+          if ( this._abortFetchingVideosForPreview ) {
             return;
           }
 
           /*
-          in order for data binding to work for _filesToRenderList and have rise-video-player observe changes, we need to explictly set a value, we can't just push an item to it, hence the use of _filesToRenderLoaded array
+          in order for data binding to work for _filesToRenderList and have rise-video-player observe changes, we need to explictly set a value, we can't just push an item to it, hence the use of _filesToRenderFetched array
            */
-          this._filesToRenderLoaded.push( Object.assign( file, {fileUrl: objectUrl} ) );
-          this._filesToRenderList = this._filesToRenderLoaded.slice(0);
+          this._filesToRenderFetched.push( Object.assign( file, {fileUrl: objectUrl} ) );
+          this._filesToRenderList = this._filesToRenderFetched.slice(0);
           //TODO: clear timers
         } )
           .catch( err => {
@@ -316,25 +316,25 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
       return;
     }
 
-    if ( this._loadingVideosForPreview ) {
-      this._clearRetryLoadingVideosTimer();
+    if ( this._fetchingVideosForPreview ) {
+      this._clearRetryFetchingVideosTimer();
 
       // keep trying until previous loading sequence is complete
-      this._retryLoadingVideosTimer = setTimeout( this._configureShowingVideosForPreview, RETRY_LOADING_VIDEOS_DELAY );
+      this._retryFetchingVideosTimer = setTimeout( this._configureShowingVideosForPreview, RETRY_FETCHING_VIDEOS_DELAY );
       return;
     }
 
     this._filesToRenderList = [];
-    this._filesToRenderLoaded = [];
+    this._filesToRenderFetched = [];
 
     // TODO: set timer to wait for first download, the _handleFirstDownloadTimer function needs modifying
 
-    return this._loadVideosForPreview( this.managedFiles.slice( 0 ) )
+    return this._fetchVideosForPreview( this.managedFiles.slice( 0 ) )
       .then( () => {
-        this._loadingVideosForPreview = false;
-        this._abortLoadingVideosForPreview = false;
+        this._fetchingVideosForPreview = false;
+        this._abortFetchingVideosForPreview = false;
 
-        console.log( "loading videos for preview complete" );
+        console.log( "fetching videos for preview complete" );
       });
   }
 
@@ -434,10 +434,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     }
   }
 
-  _clearRetryLoadingVideosTimer() {
-    if ( this._retryLoadingVideosTimer ) {
-      clearTimeout( this._retryLoadingVideosTimer );
-      this._retryLoadingVideosTimer = null;
+  _clearRetryFetchingVideosTimer() {
+    if ( this._retryFetchingVideosTimer ) {
+      clearTimeout( this._retryFetchingVideosTimer );
+      this._retryFetchingVideosTimer = null;
     }
   }
 
