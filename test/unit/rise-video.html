@@ -211,18 +211,24 @@
         } );
 
         test( "watched files are updated when files property changes", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
           element.files = "foo.mp4|bar.webm|baz.jpg";
 
           assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
         });
 
         test( "watched files are updated when metadata property changes", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
           element.metadata = [ { file: "foo.mp4" }, { file: "bar.webm" }, { file: "baz.jpg" } ];
 
           assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
         });
 
         test( "_filesToRenderList is updated correctly when metadata has no files", () => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
           assert.strictEqual( element._filesToRenderList.length, 2);
 
           element.metadata = [];
@@ -247,6 +253,8 @@
         } );
 
         test( "_filesToRenderList should not contain watched files which are returned after they're no longer needed", done => {
+          element.dispatchEvent( new CustomEvent( "start" ) );
+
           element.metadata = [ {file: "newFile1.mp4"}, {file: "newFile2.mp4"} ];
 
           setTimeout( () => {
@@ -280,6 +288,8 @@
         setup( () => {
           sinon.stub(RisePlayerConfiguration.Helpers, "isEditorPreview").returns(true);
           element = fixture( "test-block" );
+
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         teardown( () => {
@@ -387,6 +397,7 @@
       suite( "play until done", () => {
         setup( () => {
           element = fixture( "test-block" );
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         test( "should not set up files done timer if no files are provided", () => {
@@ -467,6 +478,7 @@
         setup( () => {
           sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( () => {} );
           element = fixture( "test-block" );
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         teardown( () => {
@@ -497,6 +509,7 @@
       suite( "presentation-events", () => {
         setup( () => {
           element = fixture( "test-block" );
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         test( "calling _stop should clear timeouts and stop playing videos", () => {
@@ -538,6 +551,8 @@
         setup( () => {
           element = fixture( "test-block" );
           sinon.spy( element, "_setUptimeError" );
+
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         teardown( () => {
