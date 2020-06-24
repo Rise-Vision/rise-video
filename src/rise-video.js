@@ -301,11 +301,16 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
            */
           this._filesToRenderFetched.push( Object.assign( file, {fileUrl: objectUrl} ) );
           this._filesToRenderList = this._filesToRenderFetched.slice(0);
-          //TODO: clear timers
+
         } )
           .catch( err => {
             console.log("could not get file", JSON.stringify(file), err);
             // TODO: may need to log or handle something here
+          } )
+          .finally( () => {
+            if ( this._filesToRenderList.length > 0 ) {
+              this._clearFirstDownloadTimer();
+            }
           } );
       });
     }, Promise.resolve());
@@ -327,7 +332,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     this._filesToRenderList = [];
     this._filesToRenderFetched = [];
 
-    // TODO: set timer to wait for first download, the _handleFirstDownloadTimer function needs modifying
+    this._waitForFirstDownload();
 
     return this._fetchVideosForPreview( this.managedFiles.slice( 0 ) )
       .then( () => {
@@ -465,8 +470,14 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
   }
 
   _handleFirstDownloadTimer() {
-    if ( !this.managedFiles.length ) {
-      this._done();
+    if ( this._isPreview ) {
+      if (this._filesToRenderList.length < 1) {
+        this._done();
+      }
+    } else {
+      if ( !this.managedFiles.length ) {
+        this._done();
+      }
     }
   }
 }

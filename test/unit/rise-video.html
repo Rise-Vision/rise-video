@@ -784,10 +784,12 @@
           sinon.stub(element, "_fetchFileForPreview").callsFake((file) => {
             return Promise.resolve(`blob:${file.fileUrl}`);
           });
+          sinon.spy(element, "_clearFirstDownloadTimer");
         });
 
         teardown( () => {
           element._fetchFileForPreview.restore();
+          element._clearFirstDownloadTimer.restore();
         } );
 
         test( "should sequentially add files to _filesToRenderList array and complete with the array fully populated", (done) => {
@@ -801,6 +803,7 @@
             .then( () => {
               assert.isTrue(element._fetchingVideosForPreview);
               assert.equal(element._fetchFileForPreview.callCount, 3);
+              assert.isTrue(element._clearFirstDownloadTimer.called);
               assert.deepEqual(element._filesToRenderList, [
                 { filePath: "a.webm", fileUrl: "blob:https://test.com/a.webm" },
                 { filePath: "b.webm", fileUrl: "blob:https://test.com/b.webm" },
@@ -880,11 +883,12 @@
 
             return Promise.resolve();
           });
+          sinon.spy(element, "_waitForFirstDownload");
         });
 
         teardown( () => {
           element._fetchVideosForPreview.restore();
-
+          element._waitForFirstDownload.restore();
         } );
 
         test( "should not execute if presentation has not started", () => {
@@ -933,14 +937,58 @@
           element._configureShowingVideosForPreview();
 
           setTimeout(() => {
+            assert.isTrue(element._waitForFirstDownload.called);
             assert.isTrue(element._fetchVideosForPreview.calledWith(files));
             assert.isFalse(element._fetchingVideosForPreview);
             assert.isFalse(element._abortFetchingVideosForPreview);
 
-            done()
+            done();
           }, 200);
 
         } );
+      } );
+
+      suite( "_handleFirstDownloadTimer", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+          sinon.stub(element, "_done");
+        });
+
+        teardown( () => {
+          element._done.restore();
+        } );
+
+        test( "should call done if preview and _filesToRenderList is empty", () => {
+          sinon.stub(RisePlayerConfiguration, "isPreview").returns(true);
+
+          element._handleFirstDownloadTimer();
+          assert.isTrue(element._done.called);
+
+          RisePlayerConfiguration.isPreview.restore();
+        } );
+
+        test( "should not call done if preview and _filesToRenderList is not empty", () => {
+          sinon.stub(RisePlayerConfiguration, "isPreview").returns(true);
+
+          element._filesToRenderList = [{ filePath: "newFile1.mp4", fileUrl: sampleUrl( "newFile1.mp4" ), order: 0 }];
+          element._handleFirstDownloadTimer();
+          assert.isFalse(element._done.called);
+
+          RisePlayerConfiguration.isPreview.restore();
+        } );
+
+        test( "should call done if not preview and managedFiles is empty", () => {
+          element._handleFirstDownloadTimer();
+          assert.isTrue(element._done.called);
+
+        } );
+
+        test( "should not call done if not preview and managedFiles is not empty", () => {
+          element.managedFiles = [{ filePath: "newFile1.mp4", fileUrl: sampleUrl( "newFile1.mp4" ), order: 0 }];
+          element._handleFirstDownloadTimer();
+          assert.isFalse(element._done.called);
+        } );
+
       } );
 
     </script>
