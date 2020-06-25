@@ -150,8 +150,16 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     this._validFiles.forEach( file => this.handleFileStatusUpdated({
       filePath: file,
       fileUrl: this._getFileUrl( file ),
-      status: this._previewStatusFor( file )
+      status: "current"
     }));
+  }
+
+  _filterDeletedFilesForPreview( files ) {
+    if ( !files || !Array.isArray( files ) ) {
+      return [];
+    }
+
+    return files.filter( file => this._previewStatusFor( file ) !== "deleted" );
   }
 
   _handleStart() {
@@ -201,11 +209,15 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
       filesList = this._getDefaultFiles();
     }
 
-    const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
+    let { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
 
     if ( filesList && filesList.length && ( !validFiles || !validFiles.length ) ) {
       // there are some files, but all formats are invalid
       this._setUptimeError( true );
+    }
+
+    if ( this._isPreview ) {
+      validFiles = this._filterDeletedFilesForPreview( validFiles );
     }
 
     if ( validFiles && validFiles.length > 0 ) {

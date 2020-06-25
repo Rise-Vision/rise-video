@@ -337,12 +337,15 @@
         } );
 
         test( "should initialize valid files and call _handleStartForPreview()", () => {
-          sinon.stub(element, "_handleStartForPreview")
+          sinon.stub(element, "_handleStartForPreview");
+          sinon.spy(element, "_filterDeletedFilesForPreview");
           element._start();
 
+          assert.isTrue(element._filterDeletedFilesForPreview.calledWith(["test1.mp4", "test3.webm"]));
           assert.deepEqual( element._validFiles, ["test1.mp4", "test3.webm"] );
           assert.isTrue(element._handleStartForPreview.called);
 
+          element._filterDeletedFilesForPreview.restore();
           element._handleStartForPreview.restore();
         } );
 
@@ -989,6 +992,32 @@
           assert.isFalse(element._done.called);
         } );
 
+      } );
+
+      suite( "_filterDeletedFilesForPreview", () => {
+        setup( () => {
+          element = fixture( "test-block" );
+        });
+
+        test( "should return empty array if files param is invalid", () => {
+          assert.deepEqual(element._filterDeletedFilesForPreview(), []);
+          assert.deepEqual(element._filterDeletedFilesForPreview("test"), []);
+          assert.deepEqual(element._filterDeletedFilesForPreview(123), []);
+        } );
+
+        test( "should return list of files with deleted files filtered out as per metadata", () => {
+          element.metadata = [ { file: "test1.webm", exists: true }, { file: "test2.webm", exists: false }, { file: "test3.webm", exists: true } ];
+
+          assert.deepEqual(element._filterDeletedFilesForPreview(["test1.webm", "test2.webm", "test3.webm"]), [
+            "test1.webm", "test3.webm"
+          ]);
+        } );
+
+        test( "should return correct list of files when no metadata exists", () => {
+          const list = ["test1.webm", "test2.webm", "test3.webm"];
+
+          assert.deepEqual(element._filterDeletedFilesForPreview(list), list);
+        } );
       } );
 
     </script>
