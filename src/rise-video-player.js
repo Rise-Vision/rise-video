@@ -289,6 +289,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       return;
     }
 
+    this._revokeObjectUrls( this.files );
     this._playerInstance.playlist( playlist );
 
     // simply setting an empty playlist will not stop the player from playing
@@ -394,6 +395,26 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
 
   _resetPlayer() {
     this._playerInstance.reset();
+  }
+
+  _revokeObjectUrls( newFilesList ) {
+    if ( !RisePlayerConfiguration.isPreview() || !newFilesList || !Array.isArray( newFilesList ) ) {
+      return;
+    }
+
+    if ( this._playerInstance && this._playerInstance.playlist && this._playerInstance.playlist() && this._playerInstance.playlist().length > 0 ) {
+      if ( newFilesList.length === 0 ) {
+        // new list is empty, we need to revoke all object urls in current playlist
+        return this._playerInstance.playlist().forEach(({sources}) => URL.revokeObjectURL(sources[0].src));
+      }
+
+      // find if a file in current playlist is in the new file list, if it's not then revoke the object url
+      this._playerInstance.playlist().forEach((item) => {
+        if ( !newFilesList.find( ({fileUrl}) => fileUrl === item.sources[0].src) ) {
+          URL.revokeObjectURL( item.sources[0].src );
+        }
+      });
+    }
   }
 }
 

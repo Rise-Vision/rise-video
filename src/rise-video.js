@@ -134,6 +134,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     this.$.videoPlayer.addEventListener( "log", this._childLog );
     this.$.videoPlayer.addEventListener( "set-uptime", this._childSetUptime );
     this.$.videoPlayer.addEventListener( "playlist-done", () => this._done() );
+
+    super.initCache({
+      name: `${this.tagName.toLowerCase()}_v${version.charAt(0)}`
+    });
   }
 
   _stopPresentation() {
@@ -274,15 +278,15 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
       .filter( f => this._validFiles.includes( f.filePath ) );
   }
 
-  _fetchFileForPreview( file ) {
-    // TODO: Use StoreFilesMixin to fetch and cache files. Waiting until StoreFilesMixin is in a reliable stable state
-
-    // temporarily emulating downloading/caching with a timeout as well as return the direct storage url instead of object url for now
-    return new Promise(( resolve ) => {
-      setTimeout(() => {
-        resolve( file.fileUrl );
-      }, 1000);
-    });
+  _fetchFileForPreview( fileUrl ) {
+    return super.getFile( fileUrl )
+      .then( objectUrl => {
+        if ( typeof objectUrl === "string" ) {
+          return objectUrl;
+        } else {
+          throw new Error( "Invalid file url!" );
+        }
+      });
   }
 
   _abortFetchingForPreview() {
@@ -302,7 +306,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
           return;
         }
 
-        return this._fetchFileForPreview( file ).then( (objectUrl) => {
+        return this._fetchFileForPreview( file.fileUrl ).then( (objectUrl) => {
           // don't add this to render list if an abort is flagged
           if ( this._abortFetchingVideosForPreview ) {
             return;
