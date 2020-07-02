@@ -780,12 +780,55 @@
 
       } );
 
+      suite( "_fetchFileForPreview", () => {
+        setup( () => {
+          sinon.stub(element.__proto__.__proto__.__proto__, "getFile").resolves("test object url");
+        } );
+
+        teardown( () => {
+          element.__proto__.__proto__.__proto__.getFile.restore();
+        } );
+
+        test( "should make getFile() call of StoreFilesMixin with correct file url", () => {
+          element._fetchFileForPreview("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm");
+
+          assert.isTrue(element.getFile.calledWith("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm"));
+        } );
+
+        test( "should return object url", (done) => {
+          element._fetchFileForPreview("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm")
+          .then(objectUrl => {
+            assert.equal(objectUrl, "test object url");
+            done();
+          })
+          .catch(err => {
+            console.log("should not be here!", err);
+            assert.fail();
+          })
+        } );
+
+        test( "should throw an error if not an object url string", (done) => {
+          element.__proto__.__proto__.__proto__.getFile.restore();
+          sinon.stub(element.__proto__.__proto__.__proto__, "getFile").resolves(null);
+
+          element._fetchFileForPreview("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm")
+            .then(objectUrl => {
+              console.log("shouldn't be here!", objectUrl);
+              assert.fail();
+            })
+            .catch(err => {
+              assert.equal(err.message, "Invalid file url!");
+              done();
+            });
+        } );
+      } );
+
       suite( "_fetchVideosForPreview", () => {
         setup( () => {
           element = fixture( "test-block" );
 
-          sinon.stub(element, "_fetchFileForPreview").callsFake((file) => {
-            return Promise.resolve(`blob:${file.fileUrl}`);
+          sinon.stub(element, "_fetchFileForPreview").callsFake((fileUrl) => {
+            return Promise.resolve(`blob:${fileUrl}`);
           });
           sinon.spy(element, "_clearFirstDownloadTimer");
         });
@@ -851,12 +894,12 @@
           ];
 
           element._fetchFileForPreview.restore();
-          sinon.stub(element, "_fetchFileForPreview").callsFake((file) => {
+          sinon.stub(element, "_fetchFileForPreview").callsFake((fileUrl) => {
             if ( element._fetchFileForPreview.callCount > 1 ) {
               element._abortFetchingVideosForPreview = true;
             }
 
-            return Promise.resolve(`blob:${file.fileUrl}`);
+            return Promise.resolve(`blob:${fileUrl}`);
           });
 
           element._fetchVideosForPreview( files )
