@@ -28,6 +28,9 @@
         },
         LocalStorage: {
           watchSingleFile: () => {}
+        },
+        Helpers: {
+          isEditorPreview: () => false
         }
       };
     </script>
@@ -70,6 +73,7 @@
           element = fixture("test-block");
           element._maximumTimeForFirstDownload = 500;
           element._noFilesDoneDelay = 500;
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         test( "should wait for the correct amount of time when no files are received before emitting report-done", done => {
@@ -168,6 +172,7 @@
             handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
           } );
           element = fixture("test-block-skip-init");
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         teardown( () => {
@@ -215,6 +220,7 @@
       suite( "child events", () => {
         setup (() => {
           element = fixture("test-block");
+          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         test( "should successfully pass logs to parent and then to Logger", () => {
