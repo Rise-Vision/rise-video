@@ -561,50 +561,6 @@
         } );
       } );
 
-      suite( "_revokeObjectUrls", () => {
-        const newFileList = [ { "fileUrl": "https://storage.googleapis.com/new1.mp4", "filePath": "new1.mp4" }, { "fileUrl": "https://storage.googleapis.com/new2.webm", "filePath": "new2.webm" } ];
-
-        setup(()=>{
-          sinon.stub(URL, "revokeObjectURL");
-        });
-
-        teardown(() => {
-          URL.revokeObjectURL.restore();
-        });
-
-        test( "should not execute under invalid conditions", () => {
-          // not running in preview
-          element._revokeObjectUrls();
-          assert.isFalse(URL.revokeObjectURL.called);
-
-          sinon.stub(RisePlayerConfiguration, "isPreview").returns(true);
-
-          // running in preview
-          element._revokeObjectUrls();
-          assert.isFalse(URL.revokeObjectURL.called);
-
-          element._revokeObjectUrls(123);
-          assert.isFalse(URL.revokeObjectURL.called);
-
-          element._revokeObjectUrls("test");
-          assert.isFalse(URL.revokeObjectURL.called);
-
-          // video player has no playlist
-          element._revokeObjectUrls(newFileList);
-          assert.isFalse(URL.revokeObjectURL.called);
-
-          RisePlayerConfiguration.isPreview.restore();
-        } );
-
-        test( "should revoke object urls of entire player playlist when files update is empty list", () => {
-          // TODO: could not find a way to manipulate playerInstance playlist to properly test this
-        } );
-
-        test( "should revoke object urls in player playlist that don't exist in new files list", () => {
-          // TODO: could not find a way to manipulate playerInstance playlist to properly test this
-        } );
-      } );
-
     </script>
   </body>
 </html>

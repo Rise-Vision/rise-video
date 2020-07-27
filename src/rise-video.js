@@ -4,16 +4,12 @@ import { html } from "@polymer/polymer";
 import { RiseElement } from "rise-common-component/src/rise-element.js";
 import { WatchFilesMixin } from "rise-common-component/src/watch-files-mixin";
 import { ValidFilesMixin } from "rise-common-component/src/valid-files-mixin";
-import { StoreFilesMixin } from "rise-common-component/src/store-files-mixin";
 import { version } from "./rise-video-version.js";
 import {} from "./rise-video-player";
 
 export const VALID_FILE_TYPES = [ "mp4", "webm" ];
 export const MAXIMUM_TIME_FOR_FIRST_DOWNLOAD = 15 * 1000;
 export const NO_FILES_DONE_DELAY = 10 * 1000;
-export const RETRY_FETCHING_VIDEOS_DELAY = 500;
-
-const base = StoreFilesMixin(RiseElement);
 
 // If running in Viewer, detect whether the template has been initially hidden
 // or not so we can prevent playback.
@@ -30,7 +26,7 @@ try {
   console.log( "There was a problem accessing the parent document" );
 }
 
-export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) ) {
+export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
   static get template() {
     return html`
       <style>
@@ -103,10 +99,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
 
     this._initialStart = true;
     this._filesToRenderList = [];
-    this._fetchingVideosForPreview = false;
-    this._abortFetchingVideosForPreview = false;
-    this._retryFetchingVideosTimer = null;
-    this._filesToRenderFetched = [];
     this._validFiles = [];
     this._noFilesDoneTimer = null
     this._firstDownloadTimer = null;
@@ -117,7 +109,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     // Preserve bindings to this in external callbacks
     this._handleFirstDownloadTimer = this._handleFirstDownloadTimer.bind( this );
     this._handleNoFilesTimer = this._handleNoFilesTimer.bind( this );
-    this._configureShowingVideosForPreview = this._configureShowingVideosForPreview.bind( this );
     this._childLog = this._childLog.bind( this );
     this._childSetUptime = this._childSetUptime.bind( this );
     this._done = this._done.bind( this );
@@ -134,10 +125,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     this.$.videoPlayer.addEventListener( "log", this._childLog );
     this.$.videoPlayer.addEventListener( "set-uptime", this._childSetUptime );
     this.$.videoPlayer.addEventListener( "playlist-done", () => this._done() );
-
-    super.initCache({
-      name: `${this.tagName.toLowerCase()}_v${version.charAt(0)}`
-    });
   }
 
   _stopPresentation() {
@@ -150,22 +137,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     this._reset();
   }
 
-  _handleStartForPreview() {
-    this._validFiles.forEach( file => this.handleFileStatusUpdated({
-      filePath: file,
-      fileUrl: this._getFileUrl( file ),
-      status: "current"
-    }));
-  }
-
-  _filterDeletedFilesForPreview( files ) {
-    if ( !files || !Array.isArray( files ) ) {
-      return [];
-    }
-
-    return files.filter( file => this._previewStatusFor( file ) !== "deleted" );
-  }
-
   _handleStart() {
     if ( this._initialStart ) {
       this._initialStart = false;
@@ -176,36 +147,19 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     }
   }
 
-  _getFileUrl( file ) {
-    return RiseVideo.STORAGE_PREFIX + this._encodePath( file );
-  }
-
-  _encodePath( filePath ) {
-    // encode each element of the path separately
-
-    let encodedPath = filePath.split("/")
-      .map( pathElement => encodeURIComponent( pathElement ))
-      .join("/");
-
-    return encodedPath;
-  }
-
   _start() {
-    const isEditorPreview = RisePlayerConfiguration.Helpers.isEditorPreview();
-
+    const isPreview = this._isPreview;
     let filesList;
 
-    this.$.previewPlaceholder.style.display = isEditorPreview ? "block" : "";
+    this.$.previewPlaceholder.style.display = isPreview ? "block" : "";
 
-    if ( isEditorPreview ) {
+    if ( this._isPreview ) {
       return;
     }
 
     this.stopWatch();
-    this._abortFetchingForPreview();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
-    this._clearRetryFetchingVideosTimer();
 
     if ( this._hasMetadata() ) {
       filesList = this._getFilesFromMetadata();
@@ -213,23 +167,15 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
       filesList = this._getDefaultFiles();
     }
 
-    let { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
+    const { validFiles } = this.validateFiles( filesList, VALID_FILE_TYPES );
 
     if ( filesList && filesList.length && ( !validFiles || !validFiles.length ) ) {
       // there are some files, but all formats are invalid
       this._setUptimeError( true );
     }
 
-    if ( this._isPreview ) {
-      validFiles = this._filterDeletedFilesForPreview( validFiles );
-    }
-
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
-
-      if ( this._isPreview ) {
-        return this._handleStartForPreview();
-      }
 
       this.startWatch( validFiles );
 
@@ -246,26 +192,9 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
   _stop() {
     this._validFiles = [];
     this._filesToRenderList = [];
-    this._filesToRenderFetched = [];
-    this._abortFetchingForPreview();
     this.stopWatch();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
-    this._clearRetryFetchingVideosTimer();
-  }
-
-  _metadataEntryFor( file ) {
-    return this.metadata.find( current => current.file === file );
-  }
-
-  _previewStatusFor( file ) {
-    if ( !this._hasMetadata()) {
-      return "current";
-    }
-
-    const entry = this._metadataEntryFor( file );
-
-    return entry && entry.exists ? "current" : "deleted";
   }
 
   _configureShowingVideos() {
@@ -278,87 +207,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
       .filter( f => this._validFiles.includes( f.filePath ) );
   }
 
-  _fetchFileForPreview( fileUrl ) {
-    return super.getFile( fileUrl )
-      .then( objectUrl => {
-        if ( typeof objectUrl === "string" ) {
-          return objectUrl;
-        } else {
-          throw new Error( "Invalid file url!" );
-        }
-      });
-  }
-
-  _abortFetchingForPreview() {
-    // in case sequential loading is in process, make sure to set abort flag
-    if ( this._isPreview && this._fetchingVideosForPreview ) {
-      this._abortFetchingVideosForPreview = true;
-    }
-  }
-
-  _fetchVideosForPreview( files ) {
-    this._fetchingVideosForPreview = true;
-
-    return files.reduce( (promise, file) => {
-      return promise.then(() => {
-        if ( this._abortFetchingVideosForPreview ) {
-          // don't process this file if an abort is flagged
-          return;
-        }
-
-        return this._fetchFileForPreview( file.fileUrl ).then( (objectUrl) => {
-          // don't add this to render list if an abort is flagged
-          if ( this._abortFetchingVideosForPreview ) {
-            return;
-          }
-
-          /*
-          in order for data binding to work for _filesToRenderList and have rise-video-player observe changes, we need to explictly set a value, we can't just push an item to it, hence the use of _filesToRenderFetched array
-           */
-          this._filesToRenderFetched.push( Object.assign( file, {fileUrl: objectUrl} ) );
-          this._filesToRenderList = this._filesToRenderFetched.slice(0);
-
-        } )
-          .catch( err => {
-            console.log("could not get file", JSON.stringify(file), err);
-            // TODO: may need to log or handle something here
-          } )
-          .finally( () => {
-            if ( this._filesToRenderList.length > 0 ) {
-              this._clearFirstDownloadTimer();
-            }
-          } );
-      });
-    }, Promise.resolve());
-  }
-
-  _configureShowingVideosForPreview() {
-    if ( !this._presentationStarted ) {
-      return;
-    }
-
-    if ( this._fetchingVideosForPreview ) {
-      this._clearRetryFetchingVideosTimer();
-
-      // keep trying until previous loading sequence is complete
-      this._retryFetchingVideosTimer = setTimeout( this._configureShowingVideosForPreview, RETRY_FETCHING_VIDEOS_DELAY );
-      return;
-    }
-
-    this._filesToRenderList = [];
-    this._filesToRenderFetched = [];
-
-    this._waitForFirstDownload();
-
-    return this._fetchVideosForPreview( this.managedFiles.slice( 0 ) )
-      .then( () => {
-        this._fetchingVideosForPreview = false;
-        this._abortFetchingVideosForPreview = false;
-
-        console.log( "fetching videos for preview complete" );
-      });
-  }
-
   watchedFileErrorCallback() {
     this._configureShowingVideos();
 
@@ -368,15 +216,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
   }
 
   watchedFileAddedCallback() {
-    if ( this._isPreview ) {
-      if ( this.managedFiles.length !== this._validFiles.length ) {
-        // For preview we wait until watchFilesMixin is managing full list of valid files
-        return;
-      }
-
-      return this._configureShowingVideosForPreview();
-    }
-
     this._configureShowingVideos();
 
     if ( this._filesToRenderList.length) {
@@ -404,10 +243,10 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
       const filesToLog = !this._hasMetadata() ? this.files : this._getFilesFromMetadata();
 
       this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
-
-      this._setUptimeError( false );
-      this._start();
     }
+
+    this._setUptimeError( false );
+    this._start();
   }
 
   _getFilesFromMetadata() {
@@ -455,13 +294,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
     }
   }
 
-  _clearRetryFetchingVideosTimer() {
-    if ( this._retryFetchingVideosTimer ) {
-      clearTimeout( this._retryFetchingVideosTimer );
-      this._retryFetchingVideosTimer = null;
-    }
-  }
-
   _handleNoFiles() {
     this._clearHandleNoFilesTimer();
 
@@ -486,14 +318,8 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( base ) 
   }
 
   _handleFirstDownloadTimer() {
-    if ( this._isPreview ) {
-      if (this._filesToRenderList.length < 1) {
-        this._done();
-      }
-    } else {
-      if ( !this.managedFiles.length ) {
-        this._done();
-      }
+    if ( !this.managedFiles.length ) {
+      this._done();
     }
   }
 }

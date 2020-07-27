@@ -29,9 +29,6 @@
           watchSingleFile: (file, handler) => {
             handler( { status: "CURRENT", filePath: file, fileUrl: sampleUrl( file ) } );
           }
-        },
-        Helpers: {
-          isEditorPreview: () => false
         }
       };
 
@@ -211,24 +208,18 @@
         } );
 
         test( "watched files are updated when files property changes", () => {
-          element.dispatchEvent( new CustomEvent( "start" ) );
-
           element.files = "foo.mp4|bar.webm|baz.jpg";
 
           assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
         });
 
         test( "watched files are updated when metadata property changes", () => {
-          element.dispatchEvent( new CustomEvent( "start" ) );
-
           element.metadata = [ { file: "foo.mp4" }, { file: "bar.webm" }, { file: "baz.jpg" } ];
 
           assert.deepEqual( element.managedFiles, [ { filePath: "foo.mp4", fileUrl: sampleUrl("foo.mp4"), order: 0 }, { filePath: "bar.webm", fileUrl: sampleUrl("bar.webm"), order: 1 } ] );
         });
 
         test( "_filesToRenderList is updated correctly when metadata has no files", () => {
-          element.dispatchEvent( new CustomEvent( "start" ) );
-
           assert.strictEqual( element._filesToRenderList.length, 2);
 
           element.metadata = [];
@@ -253,8 +244,6 @@
         } );
 
         test( "_filesToRenderList should not contain watched files which are returned after they're no longer needed", done => {
-          element.dispatchEvent( new CustomEvent( "start" ) );
-
           element.metadata = [ {file: "newFile1.mp4"}, {file: "newFile2.mp4"} ];
 
           setTimeout( () => {
@@ -284,28 +273,16 @@
         } );
       } );
 
-      suite( "editor preview mode", () => {
-        setup( () => {
-          sinon.stub(RisePlayerConfiguration.Helpers, "isEditorPreview").returns(true);
+      suite( "non-preview mode", () => {
+        setup (() => {
           element = fixture( "test-block" );
-
-          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
-        teardown( () => {
-          RisePlayerConfiguration.Helpers.isEditorPreview.restore();
-        } );
-
-        test( "should not initialize if in editor preview mode", () => {
-          assert.deepEqual( element._validFiles, [] );
-        } );
-
-        test( "should show the preview placeholder if in editor preview mode", () => {
+        test( "should hide the preview placeholder if not in preview mode", () => {
           const style = window.getComputedStyle( element.$.previewPlaceholder );
 
-          assert.equal( style.display, "block" );
+          assert.equal( style.display, "none" );
         } );
-
       } );
 
       suite( "preview mode", () => {
@@ -330,25 +307,15 @@
           assert.equal( RisePlayerConfiguration.isPreview.callCount, 1 );
         } );
 
-        test( "should hide the preview placeholder if not in editor preview mode", () => {
+        test( "should not initialize if in preview mode", () => {
+          assert.deepEqual( element._validFiles, [] );
+        } );
+
+        test( "should show the preview placeholder if in preview mode", () => {
           const style = window.getComputedStyle( element.$.previewPlaceholder );
 
-          assert.equal( style.display, "none" );
+          assert.equal( style.display, "block" );
         } );
-
-        test( "should initialize valid files and call _handleStartForPreview()", () => {
-          sinon.stub(element, "_handleStartForPreview");
-          sinon.spy(element, "_filterDeletedFilesForPreview");
-          element._start();
-
-          assert.isTrue(element._filterDeletedFilesForPreview.calledWith(["test1.mp4", "test3.webm"]));
-          assert.deepEqual( element._validFiles, ["test1.mp4", "test3.webm"] );
-          assert.isTrue(element._handleStartForPreview.called);
-
-          element._filterDeletedFilesForPreview.restore();
-          element._handleStartForPreview.restore();
-        } );
-
       } );
 
       suite( "get default files", () => {
@@ -400,7 +367,6 @@
       suite( "play until done", () => {
         setup( () => {
           element = fixture( "test-block" );
-          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         test( "should not set up files done timer if no files are provided", () => {
@@ -481,7 +447,6 @@
         setup( () => {
           sinon.stub( RisePlayerConfiguration.LocalStorage, 'watchSingleFile').callsFake( () => {} );
           element = fixture( "test-block" );
-          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         teardown( () => {
@@ -512,7 +477,6 @@
       suite( "presentation-events", () => {
         setup( () => {
           element = fixture( "test-block" );
-          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         test( "calling _stop should clear timeouts and stop playing videos", () => {
@@ -554,8 +518,6 @@
         setup( () => {
           element = fixture( "test-block" );
           sinon.spy( element, "_setUptimeError" );
-
-          element.dispatchEvent( new CustomEvent( "start" ) );
         } );
 
         teardown( () => {
@@ -654,412 +616,6 @@
           element.watchedFileDeletedCallback({ filePath: "a.txt" });
 
           assert.deepEqual( element._filesToRenderList, [] );
-        } );
-      } );
-
-      suite( "_previewStatusFor", () => {
-        setup( () => {
-          element = fixture( "test-block" );
-        } );
-
-        test( "should get current status if there is no metadata", () => {
-
-          const status = element._previewStatusFor( "risemedialibrary-abc123/test1.webm" );
-
-          assert.equal( status, "current" );
-        });
-
-        test( "should get current status if metadata says that file exists", () => {
-          element.metadata = [{
-            "file": "risemedialibrary-abc123/test1.webm",
-            "exists": true
-          }, {
-            "file": "risemedialibrary-abc123/test2.webm",
-            "exists": true
-          }];
-
-          const status = element._previewStatusFor( "risemedialibrary-abc123/test2.webm" );
-
-          assert.equal( status, "current" );
-        });
-
-        test( "should get deleted status if metadata says that file doesn't exist", () => {
-          element.metadata = [{
-            "file": "risemedialibrary-abc123/test1.webm",
-            "exists": true
-          }, {
-            "file": "risemedialibrary-abc123/test2.webm",
-            "exists": false
-          }];
-
-          const status = element._previewStatusFor( "risemedialibrary-abc123/test2.webm" );
-
-          assert.equal( status, "deleted" );
-        });
-
-        test( "should get deleted status if metadata is not empty but does not contain the file", () => {
-          element.metadata = [{
-            "file": "risemedialibrary-abc123/test1.webm",
-            "exists": true
-          }];
-
-          const status = element._previewStatusFor( "risemedialibrary-abc123/test2.webm" );
-
-          assert.equal( status, "deleted" );
-        } );
-
-        test( "should get deleted status if metadata is empty", () => {
-          element.metadata = [];
-
-          const status = element._previewStatusFor( "risemedialibrary-abc123/test1.webm" );
-
-          assert.equal( status, "deleted" );
-        });
-
-      });
-
-      suite( "_getFileUrl", () => {
-        setup( () => {
-          element = fixture( "test-block" );
-        } );
-
-        test( "should encode file path", () => {
-          let filePath = "risemedialibrary-abc123/testing/Ü-+ test%20encoding ([!@?,#$])=1+2-A&%.webm";
-          let fileUrl = element._getFileUrl( filePath );
-
-          assert.isTrue(fileUrl.indexOf("/risemedialibrary-abc123/") > 0, "forward slash in file path is not encoded" );
-        } );
-
-      } );
-
-      suite( "_handleStartForPreview", () => {
-        setup( () => {
-          element = fixture( "test-block" );
-          sinon.stub(element.__proto__.__proto__, "handleFileStatusUpdated");
-        });
-
-        teardown( () => {
-          element.metadata = null;
-
-          element.handleFileStatusUpdated.restore();
-        } );
-
-        test( "should call handleFileStatusUpdated with correct data", () => {
-          element._validFiles = [ "risemedialibrary-abc123/test.webm" ];
-          element._handleStartForPreview();
-
-          assert.isTrue( element.handleFileStatusUpdated.calledWith({
-            filePath: "risemedialibrary-abc123/test.webm",
-            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test.webm",
-            status: "current"
-          } ));
-        } );
-
-        test( "should call handleFileStatusUpdated for each file", () => {
-          element._validFiles = [ "risemedialibrary-abc123/test1.webm", "risemedialibrary-abc123/test2.webm", "risemedialibrary-abc123/test3.webm" ];
-          element._handleStartForPreview();
-
-          assert.deepEqual( element.__proto__.__proto__.handleFileStatusUpdated.args[0][0], {
-            filePath: "risemedialibrary-abc123/test1.webm",
-            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test1.webm",
-            status: "current"
-          } );
-
-          assert.deepEqual( element.__proto__.__proto__.handleFileStatusUpdated.args[1][0], {
-            filePath: "risemedialibrary-abc123/test2.webm",
-            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test2.webm",
-            status: "current"
-          } );
-
-          assert.deepEqual( element.__proto__.__proto__.handleFileStatusUpdated.args[2][0], {
-            filePath: "risemedialibrary-abc123/test3.webm",
-            fileUrl: "https://storage.googleapis.com/risemedialibrary-abc123/test3.webm",
-            status: "current"
-          } );
-        } );
-
-      } );
-
-      suite( "_fetchFileForPreview", () => {
-        setup( () => {
-          sinon.stub(element.__proto__.__proto__.__proto__, "getFile").resolves("test object url");
-        } );
-
-        teardown( () => {
-          element.__proto__.__proto__.__proto__.getFile.restore();
-        } );
-
-        test( "should make getFile() call of StoreFilesMixin with correct file url", () => {
-          element._fetchFileForPreview("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm");
-
-          assert.isTrue(element.getFile.calledWith("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm"));
-        } );
-
-        test( "should return object url", (done) => {
-          element._fetchFileForPreview("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm")
-          .then(objectUrl => {
-            assert.equal(objectUrl, "test object url");
-            done();
-          })
-          .catch(err => {
-            console.log("should not be here!", err);
-            assert.fail();
-          })
-        } );
-
-        test( "should throw an error if not an object url string", (done) => {
-          element.__proto__.__proto__.__proto__.getFile.restore();
-          sinon.stub(element.__proto__.__proto__.__proto__, "getFile").resolves(null);
-
-          element._fetchFileForPreview("https://storage.googleapis.com/risemedialibrary-abc123/test1.webm")
-            .then(objectUrl => {
-              console.log("shouldn't be here!", objectUrl);
-              assert.fail();
-            })
-            .catch(err => {
-              assert.equal(err.message, "Invalid file url!");
-              done();
-            });
-        } );
-      } );
-
-      suite( "_fetchVideosForPreview", () => {
-        setup( () => {
-          element = fixture( "test-block" );
-
-          sinon.stub(element, "_fetchFileForPreview").callsFake((fileUrl) => {
-            return Promise.resolve(`blob:${fileUrl}`);
-          });
-          sinon.spy(element, "_clearFirstDownloadTimer");
-        });
-
-        teardown( () => {
-          element._fetchFileForPreview.restore();
-          element._clearFirstDownloadTimer.restore();
-        } );
-
-        test( "should sequentially add files to _filesToRenderList array and complete with the array fully populated", (done) => {
-          const files = [
-            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
-            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
-            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
-          ];
-
-          element._fetchVideosForPreview( files )
-            .then( () => {
-              assert.isTrue(element._fetchingVideosForPreview);
-              assert.equal(element._fetchFileForPreview.callCount, 3);
-              assert.isTrue(element._clearFirstDownloadTimer.called);
-              assert.deepEqual(element._filesToRenderList, [
-                { filePath: "a.webm", fileUrl: "blob:https://test.com/a.webm" },
-                { filePath: "b.webm", fileUrl: "blob:https://test.com/b.webm" },
-                { filePath: "c.webm", fileUrl: "blob:https://test.com/c.webm" }
-              ]);
-              done();
-            })
-            .catch(err => {
-              console.log("shouldn't be here", err);
-              assert.fail();
-              done();
-            });
-        } );
-
-        test( "should not add files to _filesToRenderList array if abort flag is on", (done) => {
-          const files = [
-            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
-            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
-            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
-          ];
-
-          element._abortFetchingVideosForPreview = true;
-          element._fetchVideosForPreview( files )
-          .then( () => {
-            assert.isFalse(element._fetchFileForPreview.called);
-            assert.deepEqual(element._filesToRenderList, []);
-
-            done();
-          } )
-            .catch(err => {
-              console.log("shouldn't be here", err);
-              assert.fail();
-              done();
-            });
-        } );
-
-        test( "should not add file to _filesToRenderList array if abort flag turned on while processing a fetch", (done) => {
-          const files = [
-            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
-            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
-            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
-          ];
-
-          element._fetchFileForPreview.restore();
-          sinon.stub(element, "_fetchFileForPreview").callsFake((fileUrl) => {
-            if ( element._fetchFileForPreview.callCount > 1 ) {
-              element._abortFetchingVideosForPreview = true;
-            }
-
-            return Promise.resolve(`blob:${fileUrl}`);
-          });
-
-          element._fetchVideosForPreview( files )
-            .then( () => {
-              assert.equal(element._fetchFileForPreview.callCount, 2);
-              assert.deepEqual(element._filesToRenderList, [
-                { filePath: "a.webm", fileUrl: "blob:https://test.com/a.webm" }
-              ]);
-
-              done();
-            } )
-            .catch(err => {
-              console.log("shouldn't be here", err);
-              assert.fail();
-              done();
-            });
-        } );
-      } );
-
-      suite( "_configureShowingVideosForPreview", () => {
-        setup( () => {
-
-          element = fixture( "test-block" );
-
-          sinon.stub(element, "_fetchVideosForPreview").callsFake(() => {
-            element._fetchingVideosForPreview = true;
-
-            return Promise.resolve();
-          });
-          sinon.spy(element, "_waitForFirstDownload");
-        });
-
-        teardown( () => {
-          element._fetchVideosForPreview.restore();
-          element._waitForFirstDownload.restore();
-        } );
-
-        test( "should not execute if presentation has not started", () => {
-          element._presentationStarted = false;
-          element._configureShowingVideosForPreview();
-
-          assert.isFalse(element._fetchVideosForPreview.called);
-        } );
-
-        test( "should recursively wait to execute until previous sequential fetch is complete based on flag", () => {
-          let clock = sinon.useFakeTimers();
-
-          sinon.spy(element, "_configureShowingVideosForPreview");
-
-          element._presentationStarted = true;
-          element._fetchingVideosForPreview = true;
-          element._configureShowingVideosForPreview();
-
-          clock.tick(500);
-          assert.equal(element._configureShowingVideosForPreview.callCount, 2);
-          assert.isFalse(element._fetchVideosForPreview.called);
-
-          clock.tick(500);
-          assert.equal(element._configureShowingVideosForPreview.callCount, 3);
-          assert.isFalse(element._fetchVideosForPreview.called);
-
-          // mock previous sequential fetching completed
-          element._fetchingVideosForPreview = false;
-
-          clock.tick(500);
-          assert.equal(element._configureShowingVideosForPreview.callCount, 4);
-          assert.isTrue(element._fetchVideosForPreview.called);
-
-          clock.restore();
-        } );
-
-        test( "should call _fetchVideosForPreview with managed files and set flags when complete", (done) => {
-          const files = [
-            { filePath: "a.webm", fileUrl: "https://test.com/a.webm" },
-            { filePath: "b.webm", fileUrl: "https://test.com/b.webm" },
-            { filePath: "c.webm", fileUrl: "https://test.com/c.webm" }
-          ];
-
-          element._presentationStarted = true;
-          element.managedFiles = files;
-          element._configureShowingVideosForPreview();
-
-          setTimeout(() => {
-            assert.isTrue(element._waitForFirstDownload.called);
-            assert.isTrue(element._fetchVideosForPreview.calledWith(files));
-            assert.isFalse(element._fetchingVideosForPreview);
-            assert.isFalse(element._abortFetchingVideosForPreview);
-
-            done();
-          }, 200);
-
-        } );
-      } );
-
-      suite( "_handleFirstDownloadTimer", () => {
-        setup( () => {
-          element = fixture( "test-block" );
-          sinon.stub(element, "_done");
-        });
-
-        teardown( () => {
-          element._done.restore();
-        } );
-
-        test( "should call done if preview and _filesToRenderList is empty", () => {
-          sinon.stub(RisePlayerConfiguration, "isPreview").returns(true);
-
-          element._handleFirstDownloadTimer();
-          assert.isTrue(element._done.called);
-
-          RisePlayerConfiguration.isPreview.restore();
-        } );
-
-        test( "should not call done if preview and _filesToRenderList is not empty", () => {
-          sinon.stub(RisePlayerConfiguration, "isPreview").returns(true);
-
-          element._filesToRenderList = [{ filePath: "newFile1.mp4", fileUrl: sampleUrl( "newFile1.mp4" ), order: 0 }];
-          element._handleFirstDownloadTimer();
-          assert.isFalse(element._done.called);
-
-          RisePlayerConfiguration.isPreview.restore();
-        } );
-
-        test( "should call done if not preview and managedFiles is empty", () => {
-          element._handleFirstDownloadTimer();
-          assert.isTrue(element._done.called);
-
-        } );
-
-        test( "should not call done if not preview and managedFiles is not empty", () => {
-          element.managedFiles = [{ filePath: "newFile1.mp4", fileUrl: sampleUrl( "newFile1.mp4" ), order: 0 }];
-          element._handleFirstDownloadTimer();
-          assert.isFalse(element._done.called);
-        } );
-
-      } );
-
-      suite( "_filterDeletedFilesForPreview", () => {
-        setup( () => {
-          element = fixture( "test-block" );
-        });
-
-        test( "should return empty array if files param is invalid", () => {
-          assert.deepEqual(element._filterDeletedFilesForPreview(), []);
-          assert.deepEqual(element._filterDeletedFilesForPreview("test"), []);
-          assert.deepEqual(element._filterDeletedFilesForPreview(123), []);
-        } );
-
-        test( "should return list of files with deleted files filtered out as per metadata", () => {
-          element.metadata = [ { file: "test1.webm", exists: true }, { file: "test2.webm", exists: false }, { file: "test3.webm", exists: true } ];
-
-          assert.deepEqual(element._filterDeletedFilesForPreview(["test1.webm", "test2.webm", "test3.webm"]), [
-            "test1.webm", "test3.webm"
-          ]);
-        } );
-
-        test( "should return correct list of files when no metadata exists", () => {
-          const list = ["test1.webm", "test2.webm", "test3.webm"];
-
-          assert.deepEqual(element._filterDeletedFilesForPreview(list), list);
         } );
       } );
 
