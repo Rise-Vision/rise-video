@@ -112,29 +112,24 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._childLog = this._childLog.bind( this );
     this._childSetUptime = this._childSetUptime.bind( this );
     this._done = this._done.bind( this );
-    this._startPresentation = this._startPresentation.bind( this );
-    this._stopPresentation = this._stopPresentation.bind( this );
   }
 
   ready() {
     super.ready();
-
-    this.addEventListener( "rise-presentation-play", this._startPresentation );
-    this.addEventListener( "rise-presentation-stop", this._stopPresentation );
 
     this.$.videoPlayer.addEventListener( "log", this._childLog );
     this.$.videoPlayer.addEventListener( "set-uptime", this._childSetUptime );
     this.$.videoPlayer.addEventListener( "playlist-done", () => this._done() );
   }
 
-  _stopPresentation() {
-    this._presentationStarted = false;
-    this._stop();
-  }
-
-  _startPresentation() {
+  _handleRisePresentationPlay() {
     this._presentationStarted = true;
     this._reset();
+  }
+
+  _handleRisePresentationStop() {
+    this._presentationStarted = false;
+    this._stop();
   }
 
   _handleStart() {

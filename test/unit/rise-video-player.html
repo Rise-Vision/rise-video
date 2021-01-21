@@ -357,8 +357,9 @@
           element._initPlayer();
           element._initPlaylist();
 
-          assert.deepEqual( element._log.lastCall.args[ 0 ], "error" );
-          assert.deepEqual( element._log.lastCall.args[ 1 ], "playlist-plugin-load-error" );
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "playlist-plugin-load-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000053" } );
 
           playlist = oldPlaylist;
         } );
@@ -389,11 +390,10 @@
 
           assert.equal( element._log.lastCall.args[ 0 ], "error" );
           assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
-          assert.deepEqual( element._log.lastCall.args[ 2 ], {
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000052" } );
+          assert.deepEqual( element._log.lastCall.args[ 3 ], {
             errorMessage: "Sorry, there was a problem playing the video.",
-            type: "MEDIA_ERR_UNKNOWN"
-          } );
-          assert.deepEqual( element._log.lastCall.args [ 3 ], {
+            type: "MEDIA_ERR_UNKNOWN",
             storage: {
               local_url: "https://storage.googleapis.com/test1.mp4",
               file_path: "test1.mp4",
@@ -406,8 +406,10 @@
           element._onError();
 
           assert.equal( element._log.lastCall.args[ 0 ], "error" );
-          assert.equal( element._log.lastCall.args[ 2 ].type, "MEDIA_ERR_CUSTOM" );
-          assert.equal( element._log.lastCall.args[ 2 ].errorMessage, "There was an error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000052" } );
+          assert.equal( element._log.lastCall.args[ 3 ].type, "MEDIA_ERR_CUSTOM" );
+          assert.equal( element._log.lastCall.args[ 3 ].errorMessage, "There was an error" );
 
           element._playerInstance.error = oldErrorFunction;
         } );
