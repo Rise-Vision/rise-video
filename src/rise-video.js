@@ -112,8 +112,6 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._childLog = this._childLog.bind( this );
     this._childSetUptime = this._childSetUptime.bind( this );
     this._done = this._done.bind( this );
-    this._startPresentation = this._startPresentation.bind( this );
-    this._stopPresentation = this._stopPresentation.bind( this );
   }
 
   ready() {
