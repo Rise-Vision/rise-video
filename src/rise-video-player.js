@@ -230,9 +230,9 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
         errorMessage: error.message || "Sorry, there was a problem playing the video."
       };
 
-      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, data, {
+      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, { errorCode: "E000000052" }, Object.assign( {}, data, {
         storage: this._getCurrentStorageData()
-      } );
+      }));
       this._onEnded(); // skip to the next video
       this._setUptimeError( true );
     }
@@ -284,7 +284,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     } );
 
     if ( !this._playerInstance.playlist ) {
-      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYLIST_PLUGIN_LOAD_ERROR, { message: "Playlist plugin did not load" } );
+      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYLIST_PLUGIN_LOAD_ERROR, {errorCode: "E000000053"}, { message: "Playlist plugin did not load" } );
       this._setUptimeError( true );
       return;
     }
