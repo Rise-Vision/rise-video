@@ -98,21 +98,24 @@
         test( "should log 'video-start' event with correct params", () => {
           assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 0 ], componentData );
           assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 1 ], "video-start" );
-          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], { files: FILES } );
+          assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], null );
+          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 3 ], { files: FILES } );
         } );
 
         test( "should log 'video-reset' event with correct params when files change", () => {
           element.files = "foo.mp4|bar.webm";
 
           assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 1 ], "video-reset" );
-          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], { files: "foo.mp4|bar.webm" } );
+          assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], null );
+          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 3 ], { files: "foo.mp4|bar.webm" } );
         } );
 
         test( "should log 'video-reset' event with correct params when metadata changes", () => {
           element.metadata = [ { file: "foo.mp4" }, { file: "bar.webm" } ];
 
           assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 1 ], "video-reset" );
-          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], { files: [ "foo.mp4", "bar.webm" ] } );
+          assert.equal( RisePlayerConfiguration.Logger.info.lastCall.args[ 2 ], null );
+          assert.deepEqual( RisePlayerConfiguration.Logger.info.lastCall.args[ 3 ], { files: [ "foo.mp4", "bar.webm" ] } );
         } );
       } );
 

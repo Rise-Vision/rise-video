@@ -371,7 +371,8 @@
 
           assert.equal( element._log.lastCall.args[ 0 ], "info" );
           assert.equal( element._log.lastCall.args[ 1 ], "aspect" );
-          assert.deepEqual( element._log.lastCall.args[ 2 ], {
+          assert.deepEqual( element._log.lastCall.args[ 2 ], null);
+          assert.deepEqual( element._log.lastCall.args[ 3 ], {
             fileUrl: sampleUrl( "test1.mp4" ),
             placeholderAspect: getAspectRatio( bounds.width, bounds.height ),
             placeholderHeight: bounds.height,
