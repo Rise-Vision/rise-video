@@ -136,7 +136,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     if ( this._initialStart ) {
       this._initialStart = false;
 
-      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_START, { files: this.files });
+      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_START, null, { files: this.files });
 
       this._start();
     }
@@ -237,7 +237,7 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     if ( !this._initialStart ) {
       const filesToLog = !this._hasMetadata() ? this.files : this._getFilesFromMetadata();
 
-      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, { files: filesToLog });
+      this.log( RiseVideo.LOG_TYPE_INFO, RiseVideo.EVENT_VIDEO_RESET, null, { files: filesToLog });
     }
 
     this._setUptimeError( false );

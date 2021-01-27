@@ -262,7 +262,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
       fileUrl: this._playerInstance.currentSrc()
     };
 
-    this._log( RiseVideoPlayer.LOG_TYPE_INFO, RiseVideoPlayer.EVENT_ASPECT, data );
+    this._log( RiseVideoPlayer.LOG_TYPE_INFO, RiseVideoPlayer.EVENT_ASPECT, null, data );
   }
 
   _initPlaylist() {
