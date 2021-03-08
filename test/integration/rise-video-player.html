@@ -20,7 +20,9 @@
       const sampleHref = path => window.location.href.replace( "rise-video-player.html", "videos/" + path );
 
       RisePlayerConfiguration = {
-        isConfigured: () => true,
+        Helpers: {
+          getComponentAsync: () => {}
+        },
         isPreview: () => false,
         Logger: {
           info: sinon.spy(),

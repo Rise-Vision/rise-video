@@ -132,7 +132,9 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this._stop();
   }
 
-  _handleStart() {
+  _handleStart( event ) {
+    super._handleStart( event );
+
     if ( this._initialStart ) {
       this._initialStart = false;
 

@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/Rise-Vision/rise-video/#readme",
   "dependencies": {
-    "rise-common-component": "git://github.com/Rise-Vision/rise-common-component.git#v1.8.3",
+    "rise-common-component": "git://github.com/Rise-Vision/rise-common-component.git#v1.9.1",
     "video.js": "7.6.0",
     "videojs-playlist": "4.3.1"
   },

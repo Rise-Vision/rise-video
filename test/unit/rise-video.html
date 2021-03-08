@@ -18,7 +18,9 @@
       const sampleUrl = path => `https://storage.googleapis.com/${ path }`;
 
       RisePlayerConfiguration = {
-        isConfigured: () => true,
+        Helpers: {
+          getComponentAsync: () => {}
+        },
         isPreview: () => false,
         Logger: {
           info: sinon.spy(),
