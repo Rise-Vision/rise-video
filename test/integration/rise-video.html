@@ -19,7 +19,9 @@
       const sampleUrl = path => `videos/${ path }`;
 
       RisePlayerConfiguration = {
-        isConfigured: () => true,
+        Helpers: {
+          getComponentAsync: () => {}
+        },
         isPreview: () => false,
         Logger: {
           info: sinon.spy(),

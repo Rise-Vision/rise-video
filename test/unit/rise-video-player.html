@@ -24,7 +24,9 @@
       // Stubs / spies
 
       RisePlayerConfiguration = {
-        isConfigured: () => true,
+        Helpers: {
+          getComponentAsync: () => {}
+        },
         isPreview: () => false,
         Logger: {
           info: sinon.spy(),
