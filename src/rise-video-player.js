@@ -198,10 +198,47 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     return this._playerInstance.playlist.currentItem() >= ( this._playerInstance.playlist().length - 1 );
   }
 
+  _getMediaErrorName( mediaErrorCode ) {
+    switch ( mediaErrorCode ) {
+      case 0:
+        return "MEDIA_ERR_CUSTOM";
+      case 1:
+        return "MEDIA_ERR_ABORTED";
+      case 2:
+        return "MEDIA_ERR_NETWORK";
+      case 3:
+        return "MEDIA_ERR_DECODE";
+      case 4:
+        return "MEDIA_ERR_SRC_NOT_SUPPORTED";
+      case 5:
+        return "MEDIA_ERR_ENCRYPTED";
+      default:
+        return "MEDIA_ERR_UNKNOWN";
+    }
+  }
+
+  _getRiseErrorCode( mediaErrorCode ) {
+    switch (mediaErrorCode) {
+      case 1:
+        return "E000000201";
+      case 2:
+        return "E000000202";
+      case 3:
+        return "E000000203";
+      case 4:
+        return "E000000204";
+      case 5:
+        return "E000000205"
+      case 0:
+      default:
+        return "E000000206"
+    }
+  }
+
   _onError() {
     const error = this._playerInstance.error();
 
-    if ( error && error.code === 3 ) {
+    if ( error && error.code && error.code === 3 ) {
       console.log( "DECODE error retry count", this._decodeRetryCount );
       if ( this._decodeRetryCount < this._maxDecodeRetries ) {
         this._decodeRetryCount += 1;
@@ -217,20 +254,13 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
     }
 
     if  ( error ) {
-      const errorTypes = [
-        "MEDIA_ERR_CUSTOM",
-        "MEDIA_ERR_ABORTED",
-        "MEDIA_ERR_NETWORK",
-        "MEDIA_ERR_DECODE",
-        "MEDIA_ERR_SRC_NOT_SUPPORTED",
-        "MEDIA_ERR_ENCRYPTED"
-      ];
       const data = {
-        type: errorTypes[ error.code ] || "MEDIA_ERR_UNKNOWN",
+        type: this._getMediaErrorName( error.code ),
         errorMessage: error.message || "Sorry, there was a problem playing the video."
-      };
+      },
+        errorCode = this._getRiseErrorCode( error.code );
 
-      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, { errorCode: "E000000052" }, Object.assign( {}, data, {
+      this._log( RiseVideoPlayer.LOG_TYPE_ERROR, RiseVideoPlayer.EVENT_PLAYER_ERROR, { errorCode }, Object.assign( {}, data, {
         storage: this._getCurrentStorageData()
       }));
       this._onEnded(); // skip to the next video
