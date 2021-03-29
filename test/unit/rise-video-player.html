@@ -393,7 +393,7 @@
 
           assert.equal( element._log.lastCall.args[ 0 ], "error" );
           assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
-          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000052" } );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000206" } );
           assert.deepEqual( element._log.lastCall.args[ 3 ], {
             errorMessage: "Sorry, there was a problem playing the video.",
             type: "MEDIA_ERR_UNKNOWN",
@@ -410,8 +410,56 @@
 
           assert.equal( element._log.lastCall.args[ 0 ], "error" );
           assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
-          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000052" } );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000206" } );
           assert.equal( element._log.lastCall.args[ 3 ].type, "MEDIA_ERR_CUSTOM" );
+          assert.equal( element._log.lastCall.args[ 3 ].errorMessage, "There was an error" );
+
+          element._playerInstance.error = () => ( { code: 1, message: "There was an error" } );
+          element._onError();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000201" } );
+          assert.equal( element._log.lastCall.args[ 3 ].type, "MEDIA_ERR_ABORTED" );
+          assert.equal( element._log.lastCall.args[ 3 ].errorMessage, "There was an error" );
+
+          element._playerInstance.error = () => ( { code: 2, message: "There was an error" } );
+          element._onError();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000202" } );
+          assert.equal( element._log.lastCall.args[ 3 ].type, "MEDIA_ERR_NETWORK" );
+          assert.equal( element._log.lastCall.args[ 3 ].errorMessage, "There was an error" );
+
+          element._playerInstance.error = () => ( { code: 3, message: "There was an error" } );
+          element._decodeRetryCount = 5;
+          element._onError();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000203" } );
+          assert.equal( element._log.lastCall.args[ 3 ].type, "MEDIA_ERR_DECODE" );
+          assert.equal( element._log.lastCall.args[ 3 ].errorMessage, "There was an error" );
+
+          element._playerInstance.error = () => ( { code: 4, message: "There was an error" } );
+          element._decodeRetryCount = 0;
+          element._onError();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000204" } );
+          assert.equal( element._log.lastCall.args[ 3 ].type, "MEDIA_ERR_SRC_NOT_SUPPORTED" );
+          assert.equal( element._log.lastCall.args[ 3 ].errorMessage, "There was an error" );
+
+          element._playerInstance.error = () => ( { code: 5, message: "There was an error" } );
+          element._decodeRetryCount = 0;
+          element._onError();
+
+          assert.equal( element._log.lastCall.args[ 0 ], "error" );
+          assert.equal( element._log.lastCall.args[ 1 ], "player-error" );
+          assert.deepEqual( element._log.lastCall.args[ 2 ], { errorCode: "E000000205" } );
+          assert.equal( element._log.lastCall.args[ 3 ].type, "MEDIA_ERR_ENCRYPTED" );
           assert.equal( element._log.lastCall.args[ 3 ].errorMessage, "There was an error" );
 
           element._playerInstance.error = oldErrorFunction;
