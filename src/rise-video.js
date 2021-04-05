@@ -11,20 +11,7 @@ export const VALID_FILE_TYPES = [ "mp4", "webm" ];
 export const MAXIMUM_TIME_FOR_FIRST_DOWNLOAD = 15 * 1000;
 export const NO_FILES_DONE_DELAY = 10 * 1000;
 
-// If running in Viewer, detect whether the template has been initially hidden
-// or not so we can prevent playback.
-
-let initiallyHidden = false;
-
-try {
-  if ( window.frameElement ) {
-    if (window.frameElement.parentElement.style.visibility === "hidden" ) {
-      initiallyHidden = true;
-    }
-  }
-} catch(e) {
-  console.log( "There was a problem accessing the parent document" );
-}
+let initiallyHidden = RisePlayerConfiguration.Helpers.isInViewer() && !RisePlayerConfiguration.Helpers.isTestEnvironment();
 
 export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseElement ) ) {
   static get template() {
