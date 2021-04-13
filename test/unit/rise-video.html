@@ -20,13 +20,20 @@
       RisePlayerConfiguration = {
         Helpers: {
           getComponentAsync: () => {},
-          isInViewer: () => false
+          isDisplay: () => true,
+          isEditorPreview: () => false,
+          isInViewer: () => true,
+          isTestEnvironment: () => true,
+          useContentSentinel: () => false
         },
         isPreview: () => false,
         Logger: {
           info: sinon.spy(),
           error: sinon.spy(),
           warning: sinon.spy()
+        },
+        LocalMessaging: {
+          isConnected: () => true
         },
         LocalStorage: {
           watchSingleFile: (file, handler) => {
@@ -295,22 +302,22 @@
         let oldIsPreview;
 
         setup( () => {
-          oldIsPreview = RisePlayerConfiguration.isPreview;
-          RisePlayerConfiguration.isPreview = sinon.spy( sinon.stub().returns( true ) );
+          oldIsPreview = RisePlayerConfiguration.Helpers.isEditorPreview;
+          RisePlayerConfiguration.Helpers.isEditorPreview = sinon.spy( sinon.stub().returns( true ) );
           element = fixture( "test-block" );
         } );
 
         teardown( () => {
-          RisePlayerConfiguration.isPreview = oldIsPreview;
+          RisePlayerConfiguration.Helpers.isEditorPreview = oldIsPreview;
         } );
 
         test( "_isPreview should call RisePlayerConfiguration.isPreview", () => {
-          RisePlayerConfiguration.isPreview.resetHistory();
+          RisePlayerConfiguration.Helpers.isEditorPreview.resetHistory();
 
           const isPreview = element._isPreview;
 
           assert.strictEqual( isPreview, true );
-          assert.equal( RisePlayerConfiguration.isPreview.callCount, 1 );
+          assert.equal( RisePlayerConfiguration.Helpers.isEditorPreview.callCount, 1 );
         } );
 
         test( "should not initialize if in preview mode", () => {
@@ -459,14 +466,22 @@
           RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
         } );
 
-        test( "should set up first download timer when files aren't already in storage", () => {
-          assert.isOk( element._firstDownloadTimer );
+        test( "should set up first download timer when files aren't already in storage", done => {
+          setTimeout(() => {
+            assert.isOk( element._firstDownloadTimer );
+
+            done();
+          }, 100 )
         } );
 
-        test( "should clear first download timer if a file is received", () => {
-          assert.isOk( element._firstDownloadTimer );
+        test( "should clear first download timer if a file is received", done => {
+          setTimeout(() => {
+            assert.isOk( element._firstDownloadTimer );
 
-          element.managedFiles = []
+            element.managedFiles = []
+
+            done();
+          }, 100 )
         } );
       } );
 

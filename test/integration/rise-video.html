@@ -21,13 +21,20 @@
       RisePlayerConfiguration = {
         Helpers: {
           getComponentAsync: () => {},
-          isInViewer: () => false
+          isDisplay: () => true,
+          isEditorPreview: () => false,
+          isInViewer: () => true,
+          isTestEnvironment: () => true,
+          useContentSentinel: () => false
         },
         isPreview: () => false,
         Logger: {
           info: sinon.spy(),
           error: sinon.spy(),
           warning: sinon.spy()
+        },
+        LocalMessaging: {
+          isConnected: () => true
         },
         LocalStorage: {
           watchSingleFile: () => {}
