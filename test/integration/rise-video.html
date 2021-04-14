@@ -113,13 +113,14 @@
           element.metadata = [ {file: "test1-0.5s-noaudio.mp4"}, {file: "test2-0.5s-noaudio.mp4"} ];
 
           setTimeout( () => {
+            assert.isFalse(element._isPreview, "is preview");
             assert.equal( element._sendDoneEvent.callCount, 1 );
 
             finished = true;
             element._sendDoneEvent.restore();
             RisePlayerConfiguration.LocalStorage.watchSingleFile.restore();
             done();
-          }, 500 );
+          }, 1500 );
         } );
 
         test( "should not emit report-done if at least one file finished in time", done => {
