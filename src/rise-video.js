@@ -161,15 +161,13 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     if ( validFiles && validFiles.length > 0 ) {
       this._validFiles = validFiles;
 
-      this.startWatch( validFiles );
-
-      if ( !this.managedFiles.length ) {
-        this._waitForFirstDownload();
-      }
+      this.startWatch( validFiles ).then(() => {
+        if ( !this.managedFiles.length ) {
+          this._waitForFirstDownload();
+        }
+      }).catch(() => this._startWithoutValidFiles());
     } else {
-      this._validFiles = [];
-      this._handleNoFiles();
-      this._configureShowingVideos();
+      this._startWithoutValidFiles();
     }
   }
 
@@ -179,6 +177,12 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this.stopWatch();
     this._clearFirstDownloadTimer();
     this._clearHandleNoFilesTimer();
+  }
+
+  _startWithoutValidFiles() {
+    this._validFiles = [];
+    this._handleNoFiles();
+    this._configureShowingVideos();
   }
 
   _configureShowingVideos() {
@@ -262,7 +266,8 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
   }
 
   get _isPreview() {
-    return RisePlayerConfiguration.isPreview();
+    // account for the component running in editor preview OR running locally in browser
+    return RisePlayerConfiguration.Helpers.isEditorPreview() || !RisePlayerConfiguration.Helpers.isInViewer();
   }
 
   _done() {
