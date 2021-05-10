@@ -10,6 +10,7 @@ import {} from "./rise-video-player";
 export const VALID_FILE_TYPES = [ "mp4", "webm" ];
 export const MAXIMUM_TIME_FOR_FIRST_DOWNLOAD = 15 * 1000;
 export const NO_FILES_DONE_DELAY = 10 * 1000;
+export const DONE_PREVIEW_DELAY = 10 * 1000;
 
 let initiallyHidden = RisePlayerConfiguration.Helpers.isInViewer() && !RisePlayerConfiguration.Helpers.isTestEnvironment();
 
@@ -138,6 +139,9 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
     this.$.previewPlaceholder.style.display = isPreview ? "block" : "";
 
     if ( this._isPreview ) {
+      if ( this.playUntilDone ) {
+        this._startDonePreviewTimer();
+      }
       return;
     }
 
@@ -298,6 +302,13 @@ export default class RiseVideo extends WatchFilesMixin( ValidFilesMixin( RiseEle
       clearTimeout( this._firstDownloadTimer );
       this._firstDownloadTimer = null;
     }
+  }
+
+  _startDonePreviewTimer() {
+    if (this._donePreviewTimer) {
+      clearTimeout(this._donePreviewTimer);
+    }
+    this._donePreviewTimer = setTimeout( () => this._done(), DONE_PREVIEW_DELAY );      
   }
 
   _waitForFirstDownload() {
