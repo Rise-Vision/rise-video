@@ -314,16 +314,21 @@
       } );
 
       suite( "preview mode", () => {
-        let oldIsPreview;
+        let oldIsPreview, clock;
 
         setup( () => {
+          clock = sinon.useFakeTimers();
+
           oldIsPreview = RisePlayerConfiguration.Helpers.isEditorPreview;
           RisePlayerConfiguration.Helpers.isEditorPreview = sinon.spy( sinon.stub().returns( true ) );
+
           element = fixture( "test-block" );
+          sinon.stub(element, "_done");
         } );
 
         teardown( () => {
           RisePlayerConfiguration.Helpers.isEditorPreview = oldIsPreview;
+          clock.restore();
         } );
 
         test( "_isPreview should call RisePlayerConfiguration.isPreview", () => {
@@ -343,6 +348,14 @@
           const style = window.getComputedStyle( element.$.previewPlaceholder );
 
           assert.equal( style.display, "flex" );
+        } );
+
+        test( "should send Done event after 10s if in preview mode", () => {
+          assert.isFalse(element._done.called);
+          clock.tick(1000 * 5);
+          assert.isFalse(element._done.called);
+          clock.tick(1000 * 5);
+          assert.isTrue(element._done.called);
         } );
       } );
 
@@ -654,6 +667,46 @@
           assert.deepEqual( element._filesToRenderList, [] );
         } );
       } );
+
+      suite("_startDonePreviewTimer", () => {
+          let clock;
+
+          setup(() => {
+            element = fixture("test-block");
+            sinon.stub(element, "_done");
+
+            clock = sinon.useFakeTimers();
+          } );
+
+          teardown(() => {
+            clock.restore();
+          } );
+
+          test("should send Done after 10 seconds", () => {
+            element._startDonePreviewTimer();
+
+            assert.isFalse(element._done.called);
+            clock.tick(1000 * 5);
+            assert.isFalse(element._done.called);
+            clock.tick(1000 * 5);
+            assert.isTrue(element._done.called);
+          } );
+
+          test("should clear existing timers", () => {
+            element._startDonePreviewTimer();
+
+            assert.isFalse(element._done.called);
+            clock.tick(1000 * 5);
+
+            element._startDonePreviewTimer();
+
+            assert.isFalse(element._done.called);
+            clock.tick(1000 * 5);
+            assert.isFalse(element._done.called);
+            clock.tick(1000 * 5);
+            assert.isTrue(element._done.called);
+          } );
+        } );
 
     </script>
   </body>
