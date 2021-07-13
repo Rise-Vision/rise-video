@@ -212,8 +212,8 @@
       suite( "_initPlaylist", () => {
         test( "playlist should be initialized correctly", () => {
           const expected = [
-            { sources: [ { src: sampleUrl( FILES[0]), type: sampleType( FILES[0] ) } ] },
-            { sources: [ { src: sampleUrl( FILES[1]), type: sampleType( FILES[1] ) } ] }
+            { sources: [ { src: sampleUrl( FILES[0]), type: sampleType( FILES[0] ) } ], poster: "noposter" },
+            { sources: [ { src: sampleUrl( FILES[1]), type: sampleType( FILES[1] ) } ], poster: "noposter" }
           ];
 
           element._playerInstance.playlist.resetHistory();

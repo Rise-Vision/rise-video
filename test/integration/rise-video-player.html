@@ -176,6 +176,14 @@
           element = fixture("test-block");
         } );
 
+        test( "video poster should be off", done => {
+          element._playerInstance.on( "play", () => {
+            assert.strictEqual( element._playerInstance.poster(), "noposter" );
+
+            done();
+          } );
+        } );
+
         test( "player volume should default to 0 and be muted intially", done => {
           element._playerInstance.on( "play", () => {
             assert.strictEqual( element._playerInstance.volume(), 0 );
