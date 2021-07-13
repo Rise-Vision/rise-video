@@ -39,7 +39,7 @@ export default class RiseVideoPlayer extends LoggerMixin( RiseElement ) {
           display: none !important;
         }
       </style>
-      <video id="video" class="video-js"></video>
+      <video id="video" poster="noposter" class="video-js"></video>
     `;
   }
 
